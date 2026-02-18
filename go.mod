@@ -2,7 +2,10 @@ module github.com/zedeus/nitter-proxy
 
 go 1.25.4
 
-require github.com/Noooste/azuretls-client v1.12.10
+require (
+	github.com/BurntSushi/toml v1.6.0
+	github.com/Noooste/azuretls-client v1.12.10
+)
 
 require (
 	github.com/Noooste/fhttp v1.0.15 // indirect
