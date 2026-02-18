@@ -1,0 +1,79 @@
+nitter-proxy.conf
+  c816b4bfd38e0616 1-6
+api.go
+  9aa4528684f85ce2 22
+config.go
+  c816b4bfd38e0616 1-43
+utils.go
+  c816b4bfd38e0616 3,9,13,16,25-26,50-52,54-63
+  2eed7f8e9a02d293 1-2,11,17,21-24,84
+  9aa4528684f85ce2 48-49,64-70
+pic.go
+  9aa4528684f85ce2 72,94
+main.go
+  9aa4528684f85ce2 8-9,16,20-25,39-43,48
+  2eed7f8e9a02d293 5,14,34-36,46,52-55
+  c816b4bfd38e0616 17,29,31,47,49,56,58-60
+video.go
+  9aa4528684f85ce2 4,72-77,89,111,118,136,151
+  c816b4bfd38e0616 1-3,5-12,22-34,36-38,40-43,45-48,54,56,58-59,61-69,84,88,90-94,96,98-101,106,108-109,113-117,119-135,137-150,152-170,172-192,195-197,199-200
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.0.42",
+  "base_commit_sha": "5bff6b08c1e29f8a982df29044467d1c01573906",
+  "prompts": {
+    "05eb0d50f0ee4a45": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d51718e6-ea53-4115-b11f-a0037cc6186a",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Zed <zedeus@pm.me>",
+      "messages": [],
+      "total_additions": 27,
+      "total_deletions": 4,
+      "accepted_lines": 22,
+      "overriden_lines": 0
+    },
+    "2eed7f8e9a02d293": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f398157f-ace0-476f-9480-835a1c29274b",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Zed <zedeus@pm.me>",
+      "messages": [],
+      "total_additions": 201,
+      "total_deletions": 111,
+      "accepted_lines": 72,
+      "overriden_lines": 3
+    },
+    "9aa4528684f85ce2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a3da75d1-96ac-4b29-b778-25f5d8ac9ba5",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Zed <zedeus@pm.me>",
+      "messages": [],
+      "total_additions": 50,
+      "total_deletions": 22,
+      "accepted_lines": 43,
+      "overriden_lines": 0
+    },
+    "c816b4bfd38e0616": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "446836be-4a46-4525-a530-047d7361f529",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Zed <zedeus@pm.me>",
+      "messages": [],
+      "total_additions": 307,
+      "total_deletions": 24,
+      "accepted_lines": 224,
+      "overriden_lines": 22
+    }
+  }
+}
