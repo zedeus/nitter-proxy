@@ -1,0 +1,23 @@
+api.go
+  38dbfd152741ef51 15-21,23-36,64
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.0.42",
+  "base_commit_sha": "aeb3ef47c220fe9fb2ef0aa8d329b84f2429c1db",
+  "prompts": {
+    "38dbfd152741ef51": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "be94822b-e092-4ee3-ad8f-a39850c2db41",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Zed <zedeus@pm.me>",
+      "messages": [],
+      "total_additions": 105,
+      "total_deletions": 16,
+      "accepted_lines": 87,
+      "overriden_lines": 2
+    }
+  }
+}
