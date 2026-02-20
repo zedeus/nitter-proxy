@@ -10,6 +10,30 @@ import (
 	"github.com/Noooste/azuretls-client"
 )
 
+// If pin verification fails (stale pins from cert rotation or CDN changes), it
+// clears the pinned certs and retries once to refresh pins
+func (s *Server) doWithPinRetry(r *azuretls.Request) (*azuretls.Response, error) {
+	resp, err := s.session.Do(r)
+	if err != nil && strings.Contains(err.Error(), "pin verification failed") {
+		u, parseErr := url.Parse(r.Url)
+		if parseErr == nil {
+			slog.Warn("[API] Pin verification failed, clearing pins and retrying", "host", u.Host)
+			_ = s.session.ClearPins(u)
+
+			// Build a fresh request — session.Do sets internal context/deadline
+			// state on the Request that becomes invalid after the first call returns.
+			retry := &azuretls.Request{
+				Method:     r.Method,
+				Url:        r.Url,
+				Header:     r.Header,
+				IgnoreBody: r.IgnoreBody,
+			}
+			resp, err = s.session.Do(retry)
+		}
+	}
+	return resp, err
+}
+
 func formatURL(u *url.URL) string {
 	u.Path = strings.TrimLeft(u.Path, "/")
 	u.Scheme = "https"
@@ -37,7 +61,7 @@ func (s *Server) apiProxyHandler(w http.ResponseWriter, req *http.Request) {
 	url := req.URL
 	url.Path = path
 
-	resp, err := s.session.Do(&azuretls.Request{
+	resp, err := s.doWithPinRetry(&azuretls.Request{
 		Method:     http.MethodGet,
 		Url:        formatURL(url),
 		Header:     copyHeaders(req.Header),
