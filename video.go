@@ -122,7 +122,7 @@ func (s *Server) proxyM3U8(w http.ResponseWriter, m3u8URL string) {
 		return
 	}
 
-	rewritten := rewriteM3U8(body, s.hmacKey)
+	rewritten := rewriteM3U8(body, s.hmacKey, m3u8URL)
 
 	w.Header().Set("Content-Type", "application/vnd.apple.mpegurl")
 	if _, err := io.WriteString(w, rewritten); err != nil {
@@ -155,7 +155,7 @@ func (s *Server) proxyVMAP(w http.ResponseWriter, vmapURL string) {
 		return
 	}
 
-	rewritten := rewriteM3U8(m3u8Body, s.hmacKey)
+	rewritten := rewriteM3U8(m3u8Body, s.hmacKey, m3u8URL)
 
 	w.Header().Set("Content-Type", "application/vnd.apple.mpegurl")
 	if _, err := io.WriteString(w, rewritten); err != nil {
@@ -163,15 +163,35 @@ func (s *Server) proxyVMAP(w http.ResponseWriter, vmapURL string) {
 	}
 }
 
+// resolveManifestBase extracts the origin and directory path from a manifest URL
+// for resolving relative URLs within the manifest.
+func resolveManifestBase(manifestURL string) (origin, dirPath string) {
+	if manifestURL == "" {
+		return "https://video.twimg.com", ""
+	}
+	u, err := url.Parse(manifestURL)
+	if err != nil {
+		return "https://video.twimg.com", ""
+	}
+	origin = u.Scheme + "://" + u.Host
+	if idx := strings.LastIndex(u.Path, "/"); idx >= 0 {
+		dirPath = origin + u.Path[:idx+1]
+	}
+	return
+}
+
 // rewriteM3U8 rewrites relative URLs in an M3U8 playlist to proxied video URLs.
-// Relative paths (starting with /) are assumed to be on video.twimg.com.
-func rewriteM3U8(content, hmacKey string) string {
+// manifestURL is the URL the manifest was fetched from, used to resolve relative paths.
+func rewriteM3U8(content, hmacKey, manifestURL string) string {
+	origin, dirPath := resolveManifestBase(manifestURL)
 	lines := strings.Split(content, "\n")
 	for i, line := range lines {
-		if strings.HasPrefix(line, "#EXT-X-MAP:URI=") || strings.Contains(line, "URI=") {
-			lines[i] = rewriteExtXMapURI(line, hmacKey)
-		} else if strings.HasPrefix(line, "/") {
-			lines[i] = makeVideoProxyURL(line, hmacKey)
+		if strings.Contains(line, "URI=") {
+			lines[i] = rewriteExtXMapURI(line, hmacKey, origin, dirPath)
+		} else if len(line) > 0 && !strings.HasPrefix(line, "#") && !strings.HasPrefix(line, "http") {
+			if strings.HasPrefix(line, "/") || (dirPath != "" && strings.Contains(line, ".")) {
+				lines[i] = makeVideoProxyURL(resolveManifestPath(line, origin, dirPath), hmacKey)
+			}
 		}
 	}
 	return strings.Join(lines, "\n")
@@ -179,22 +199,33 @@ func rewriteM3U8(content, hmacKey string) string {
 
 var extXMapURIRe = regexp.MustCompile(`URI="([^"]+)"`)
 
-func rewriteExtXMapURI(line, hmacKey string) string {
+func rewriteExtXMapURI(line, hmacKey, origin, dirPath string) string {
 	return extXMapURIRe.ReplaceAllStringFunc(line, func(match string) string {
 		sub := extXMapURIRe.FindStringSubmatch(match)
 		if len(sub) < 2 {
 			return match
 		}
-		return `URI="` + makeVideoProxyURL(sub[1], hmacKey) + `"`
+		resolved := resolveManifestPath(sub[1], origin, dirPath)
+		return `URI="` + makeVideoProxyURL(resolved, hmacKey) + `"`
 	})
 }
 
-func makeVideoProxyURL(path, hmacKey string) string {
-	fullURL := path
-	if !strings.HasPrefix(fullURL, "http") {
-		fullURL = "https://video.twimg.com" + path
+// resolveManifestPath resolves a URL from within a manifest against the
+// manifest's origin and directory path.
+func resolveManifestPath(rawURL, origin, dirPath string) string {
+	if strings.HasPrefix(rawURL, "http") {
+		return rawURL
 	}
+	if strings.HasPrefix(rawURL, "/") {
+		return origin + rawURL
+	}
+	if dirPath != "" {
+		return dirPath + rawURL
+	}
+	return origin + "/" + rawURL
+}
 
+func makeVideoProxyURL(fullURL, hmacKey string) string {
 	return "/video/" + createHMAC(hmacKey, fullURL) +
 		"/" + url.QueryEscape(fullURL)
 }
