@@ -50,7 +50,7 @@ func (s *Server) videoProxyHandler(w http.ResponseWriter, req *http.Request) {
 	extension, _, _ := strings.Cut(decoded[lastDot+1:], "?")
 
 	switch extension {
-	case "mp4", "ts", "m4s":
+	case "mp4", "ts", "m4s", "aac":
 		s.proxyVideoStream(w, req, decoded)
 	case "m3u8":
 		s.proxyM3U8(w, decoded)
