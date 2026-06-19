@@ -1,0 +1,19 @@
+video.go
+  s_229b3e71f82470::t_49585ff01dc105 53
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.9",
+  "base_commit_sha": "11d0546cffda455e6e89750e662694c73a7e15a7",
+  "prompts": {},
+  "sessions": {
+    "s_229b3e71f82470": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c05e0cf7-a169-4075-8e3f-d68c6570ef8e",
+        "model": "claude-opus-4-5-20251101"
+      },
+      "human_author": "Zed <zedeus@pm.me>"
+    }
+  }
+}
