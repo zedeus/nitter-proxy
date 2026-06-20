@@ -7,9 +7,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"hash/fnv"
 	"io"
-	"net"
 	"net/http"
 	"strings"
 	"syscall"
@@ -23,24 +21,9 @@ func checkClose(c io.Closer, err *error) {
 }
 
 func isClientDisconnect(err error) bool {
-	// Common cases when client aborts a streaming response.
-	if errors.Is(err, syscall.EPIPE) || errors.Is(err, syscall.ECONNRESET) {
-		return true
-	}
-	if errors.Is(err, context.Canceled) {
-		return true
-	}
-
-	// Unwrap net/http / os errors (net.OpError -> os.SyscallError -> syscall.Errno)
-	var opErr *net.OpError
-	if errors.As(err, &opErr) {
-		// Sometimes the inner error carries EPIPE/ECONNRESET.
-		if errors.Is(opErr.Err, syscall.EPIPE) || errors.Is(opErr.Err, syscall.ECONNRESET) {
-			return true
-		}
-	}
-
-	return false
+	return errors.Is(err, syscall.EPIPE) ||
+		errors.Is(err, syscall.ECONNRESET) ||
+		errors.Is(err, context.Canceled)
 }
 
 func (s *Server) fetchBody(rawURL string) (body string, err error) {
@@ -68,9 +51,14 @@ func copyBody(dst io.Writer, src io.Reader) (int64, error) {
 }
 
 func hash(s string) uint64 {
-	h := fnv.New64a()
-	h.Write([]byte(s))
-	return h.Sum64()
+	const offset64 = 14695981039346656037
+	const prime64 = 1099511628211
+	h := uint64(offset64)
+	for i := 0; i < len(s); i++ {
+		h ^= uint64(s[i])
+		h *= prime64
+	}
+	return h
 }
 
 func createHMAC(key, data string) string {
