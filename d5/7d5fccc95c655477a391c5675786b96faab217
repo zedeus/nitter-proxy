@@ -1,0 +1,20 @@
+api.go
+  s_8bdcc771210412::t_1964b0ffc91d6c 37-42
+  s_8bdcc771210412::t_b20a4cb9975a4a 69
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.9",
+  "base_commit_sha": "d57d5fccc95c655477a391c5675786b96faab217",
+  "prompts": {},
+  "sessions": {
+    "s_8bdcc771210412": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5a626bcf-9653-4bda-ac61-79cf778d3153",
+        "model": "claude-opus-4-5-20251101"
+      },
+      "human_author": "Zed <zedeus@pm.me>"
+    }
+  }
+}
