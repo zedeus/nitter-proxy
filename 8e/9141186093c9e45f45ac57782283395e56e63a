@@ -1,0 +1,19 @@
+nitter-proxy.conf.example
+  s_8bdcc771210412::t_35ad1392f9925e 18,21-22,26,29-31,34-35,39-41,44,46-58,60-64,67-73,75
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.9",
+  "base_commit_sha": "8e9141186093c9e45f45ac57782283395e56e63a",
+  "prompts": {},
+  "sessions": {
+    "s_8bdcc771210412": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5a626bcf-9653-4bda-ac61-79cf778d3153",
+        "model": "claude-opus-4-5-20251101"
+      },
+      "human_author": "Zed <zedeus@pm.me>"
+    }
+  }
+}
