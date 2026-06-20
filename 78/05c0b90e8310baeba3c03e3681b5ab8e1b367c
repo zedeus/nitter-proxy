@@ -1,0 +1,20 @@
+video.go
+  s_8bdcc771210412::t_aed21bba4c4b9a 125-154
+  s_8bdcc771210412::t_017691a12d6e08 49-54,65-66
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.9",
+  "base_commit_sha": "7805c0b90e8310baeba3c03e3681b5ab8e1b367c",
+  "prompts": {},
+  "sessions": {
+    "s_8bdcc771210412": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5a626bcf-9653-4bda-ac61-79cf778d3153",
+        "model": "claude-opus-4-5-20251101"
+      },
+      "human_author": "Zed <zedeus@pm.me>"
+    }
+  }
+}
