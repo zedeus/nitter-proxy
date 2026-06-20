@@ -45,6 +45,12 @@ func (s *Server) videoProxyHandler(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	// Handle live stream encryption keys (no file extension)
+	if strings.Contains(decoded, "/live_video_stream/key") {
+		s.proxyPassthrough(w, decoded, "application/octet-stream")
+		return
+	}
+
 	lastDot := strings.LastIndex(decoded, ".")
 	extension, _, _ := strings.Cut(decoded[lastDot+1:], "?")
 
@@ -55,6 +61,8 @@ func (s *Server) videoProxyHandler(w http.ResponseWriter, req *http.Request) {
 		s.proxyM3U8(w, decoded)
 	case "vmap":
 		s.proxyVMAP(w, decoded)
+	case "vtt":
+		s.proxyPassthrough(w, decoded, "text/vtt")
 	default:
 		slog.Error("Unsupported format: " + extension + ", full: " + decoded)
 		http.Error(w, "Unsupported format", http.StatusBadRequest)
@@ -110,6 +118,38 @@ func (s *Server) proxyVideoStream(w http.ResponseWriter, req *http.Request, vide
 	_, err = copyBody(w, resp.Body)
 	if err != nil && !isClientDisconnect(err) {
 		slog.Error("[VIDEO] Write error", "error", err)
+	}
+}
+
+func (s *Server) proxyPassthrough(w http.ResponseWriter, targetURL, contentType string) {
+	proxyReq, err := http.NewRequest("GET", targetURL, nil)
+	if err != nil {
+		slog.Error("[VIDEO] Bad URL", "error", err)
+		http.Error(w, "Invalid URL", http.StatusBadRequest)
+		return
+	}
+
+	resp, err := s.httpClient.Do(proxyReq)
+	if err != nil {
+		slog.Error("[VIDEO] Passthrough proxy error", "error", err)
+		http.Error(w, "Proxy Error", http.StatusBadGateway)
+		return
+	}
+	defer checkClose(resp.Body, &err)
+
+	if resp.StatusCode > 299 {
+		http.Error(w, "Upstream Error", resp.StatusCode)
+		return
+	}
+
+	w.Header().Set("Content-Type", contentType)
+	if cl := resp.Header.Get("Content-Length"); cl != "" {
+		w.Header().Set("Content-Length", cl)
+	}
+
+	w.WriteHeader(resp.StatusCode)
+	if _, err := io.Copy(w, resp.Body); err != nil && !isClientDisconnect(err) {
+		slog.Error("[VIDEO] Passthrough write error", "error", err)
 	}
 }
 
