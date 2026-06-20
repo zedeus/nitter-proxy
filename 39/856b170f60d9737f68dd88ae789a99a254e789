@@ -1,0 +1,28 @@
+cache/cache.go
+  s_8bdcc771210412::t_685b47e25f88ab 33
+  s_8bdcc771210412::t_638adf93413a33 506-509
+  s_8bdcc771210412::t_6381fdc932cbe0 37
+  s_8bdcc771210412::t_bbd10807c22a16 498
+  s_8bdcc771210412::t_4c4b3d2b567716 142-495,511-525,540-546
+  s_8bdcc771210412::t_8efeb25bb1a6c6 536-537
+cache/popularity.go
+  s_8bdcc771210412::t_4538ca754e5fec 1-127
+cache/metrics.go
+  s_8bdcc771210412::t_6b1bd2bb06d8f2 1-64
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.9",
+  "base_commit_sha": "39856b170f60d9737f68dd88ae789a99a254e789",
+  "prompts": {},
+  "sessions": {
+    "s_8bdcc771210412": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5a626bcf-9653-4bda-ac61-79cf778d3153",
+        "model": "claude-opus-4-5-20251101"
+      },
+      "human_author": null
+    }
+  }
+}
