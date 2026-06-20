@@ -1,0 +1,47 @@
+cache/popularity.go
+  s_8bdcc771210412::t_4538ca754e5fec 1-127
+cache/cache_test.go
+  s_8bdcc771210412::t_f93ac0c2c928ce 98,146,175
+  s_8bdcc771210412::t_9729f09053a4ec 101,177
+  s_8bdcc771210412::t_ec1444adf9da54 147
+api.go
+  s_8bdcc771210412::t_dd8e80283c9241 131
+  s_8bdcc771210412::t_ee703fe719581f 78-92,94-110
+cache/graceful_test.go
+  s_8bdcc771210412::t_f93ac0c2c928ce 22,46
+  s_8bdcc771210412::t_9729f09053a4ec 24,48
+cache/metrics.go
+  s_8bdcc771210412::t_6b1bd2bb06d8f2 1-62
+cache/cache.go
+  s_8bdcc771210412::t_8efeb25bb1a6c6 443-444
+  s_8bdcc771210412::t_5f37d3f1d7febd 19-23
+  s_8bdcc771210412::t_52976297304005 251-253
+  s_8bdcc771210412::t_638adf93413a33 413-416
+  s_8bdcc771210412::t_f36393f9e10f66 238
+  s_8bdcc771210412::t_ec47a21c0ce754 294-297
+  s_8bdcc771210412::t_492bb56f6cbedb 229-230
+  s_8bdcc771210412::t_a2d8d6da99c2cd 331,367
+  s_8bdcc771210412::t_44b39d88320461 123-124
+  s_8bdcc771210412::t_bbd10807c22a16 405
+  s_8bdcc771210412::t_4c4b3d2b567716 24,28,32,65,130-228,231-237,239-250,254-270,272,274-293,298-299,301-302,304-306,308-330,332-366,368-402,406,417-432,434,446-453,455-456
+  s_8bdcc771210412::t_6381fdc932cbe0 31
+  s_8bdcc771210412::t_0e4b4caae4d494 300,303,307
+  s_8bdcc771210412::t_3a15e1c589a8ce 271,273
+  s_8bdcc771210412::t_685b47e25f88ab 27
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.9",
+  "base_commit_sha": "d61780f0737ef3679886a518a7b60bf9d677256b",
+  "prompts": {},
+  "sessions": {
+    "s_8bdcc771210412": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5a626bcf-9653-4bda-ac61-79cf778d3153",
+        "model": "claude-opus-4-5-20251101"
+      },
+      "human_author": null
+    }
+  }
+}
