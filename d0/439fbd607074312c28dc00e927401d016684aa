@@ -1,0 +1,22 @@
+cache/cache.go
+  s_8bdcc771210412::t_6381fdc932cbe0 39
+  s_8bdcc771210412::t_685b47e25f88ab 35
+  s_8bdcc771210412::t_638adf93413a33 701-704
+  s_8bdcc771210412::t_8efeb25bb1a6c6 726-727
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.9",
+  "base_commit_sha": "d0439fbd607074312c28dc00e927401d016684aa",
+  "prompts": {},
+  "sessions": {
+    "s_8bdcc771210412": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5a626bcf-9653-4bda-ac61-79cf778d3153",
+        "model": "claude-opus-4-5-20251101"
+      },
+      "human_author": null
+    }
+  }
+}
