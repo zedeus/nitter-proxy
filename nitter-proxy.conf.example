@@ -1,0 +1,70 @@
+[Server]
+address = "localhost"
+port = 7000
+
+[Config]
+hmacKey = "must-match-nitter.conf's-hmacKey"
+
+[Cache]
+enabled = true
+redisAddr = "localhost:6379"
+redisPassword = ""
+redisDB = 0
+redisPrefix = "np:"
+
+# Default TTL for endpoints not listed below
+defaultTTL = "3m"
+
+# Serve stale cached data if upstream fails (prevents cascading failures)
+enableStaleIfError = true
+staleIfErrorWindow = "5m"
+
+# Cache 404/not-found responses to reduce repeated lookups
+enableNegativeCaching = true
+negativeCacheTTL = "2m"
+
+# Skip objects larger than this (bytes)
+maxObjectSize = 1048576
+
+# Empty whitelist = cache all endpoints. Uncomment to restrict:
+# whitelist = ["UserByScreenName", "UserResultByScreenNameQuery", ...]
+
+# Popularity-based admission control
+# Items must be accessed popularityThreshold times within popularityWindow
+# before being cached. Set to 0 to cache immediately, 1 to cache on 2nd request.
+popularityThreshold = 1
+popularityWindow = "2m"
+
+[Cache.endpointTTLs]
+# User profile endpoints - stable, cache longer
+UserByScreenName = "30m"
+UserResultByScreenNameQuery = "30m"
+UserResultByIdQuery = "30m"
+AboutAccountQuery = "30m"
+
+# Tweet timelines - refresh often for new content
+UserWithProfileTweetsQueryV2 = "3m"
+UserWithProfileTweetsAndRepliesQueryV2 = "3m"
+MediaTimelineV2 = "3m"
+UserMedia = "3m"
+UserTweets = "3m"
+UserTweetsAndReplies = "3m"
+
+# Individual tweets/conversations - moderately stable
+ConversationTimeline = "5m"
+TweetDetail = "5m"
+TweetResultByRestId = "10m"
+TweetResultByIdQuery = "10m"
+
+# Search - very short TTL (results change rapidly)
+SearchTimeline = "1m"
+
+# Lists - metadata stable, timeline refreshes
+ListByRestId = "60m"
+ListBySlug = "60m"
+ListTimeline = "3m"
+
+# Per-endpoint popularity thresholds (override global setting)
+# Higher threshold = item must be requested more times before caching
+[Cache.endpointThresholds]
+SearchTimeline = 3

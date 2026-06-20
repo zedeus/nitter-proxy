@@ -29,6 +29,15 @@ go.work.sum
 # env file
 .env
 
+# Local data
+dump.rdb
+sessions.jsonl
+*.log
+logs/
+
+# Local config (use nitter-proxy.conf.example as template)
+nitter-proxy.conf
+
 # Editor/IDE
 # .idea/
 # .vscode/

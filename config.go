@@ -5,11 +5,13 @@ import (
 	"fmt"
 
 	"github.com/BurntSushi/toml"
+	"github.com/zedeus/nitter-proxy/cache"
 )
 
 type Config struct {
 	Server ServerConfig
 	Config ConfigSection
+	Cache  cache.Config
 }
 
 type ServerConfig struct {
@@ -33,6 +35,7 @@ func loadConfig() (*Config, error) {
 		Config: ConfigSection{
 			HMACKey: "secretkey",
 		},
+		Cache: cache.DefaultConfig(),
 	}
 
 	if _, err := toml.DecodeFile(*path, cfg); err != nil {

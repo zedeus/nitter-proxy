@@ -15,8 +15,6 @@ import (
 	"syscall"
 )
 
-// checkClose closes c and sets *err if there was no prior error.
-// Use with defer: defer checkClose(resp.Body, &err)
 func checkClose(c io.Closer, err *error) {
 	cerr := c.Close()
 	if *err == nil {
@@ -63,7 +61,6 @@ func (s *Server) fetchBody(rawURL string) (body string, err error) {
 	return string(b), nil
 }
 
-// copyBody streams src to dst using a pooled buffer.
 func copyBody(dst io.Writer, src io.Reader) (int64, error) {
 	bufp := copyBufPool.Get().(*[]byte)
 	defer copyBufPool.Put(bufp)

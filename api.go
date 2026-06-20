@@ -8,20 +8,20 @@ import (
 	"strings"
 
 	"github.com/Noooste/azuretls-client"
+	"github.com/zedeus/nitter-proxy/cache"
 )
 
-// If pin verification fails (stale pins from cert rotation or CDN changes), it
-// clears the pinned certs and retries once to refresh pins
 func (s *Server) doWithPinRetry(r *azuretls.Request) (*azuretls.Response, error) {
 	resp, err := s.session.Do(r)
 	if err != nil && strings.Contains(err.Error(), "pin verification failed") {
 		u, parseErr := url.Parse(r.Url)
 		if parseErr == nil {
+			if resp != nil && resp.RawBody != nil {
+				resp.RawBody.Close()
+			}
 			slog.Warn("[API] Pin verification failed, clearing pins and retrying", "host", u.Host)
-			_ = s.session.ClearPins(u)
-
-			// Build a fresh request — session.Do sets internal context/deadline
-			// state on the Request that becomes invalid after the first call returns.
+			s.session.ClearPins(u)
+			// session.Do mutates request state, so we need a fresh one
 			retry := &azuretls.Request{
 				Method:     r.Method,
 				Url:        r.Url,
@@ -35,16 +35,16 @@ func (s *Server) doWithPinRetry(r *azuretls.Request) (*azuretls.Response, error)
 }
 
 func formatURL(u *url.URL) string {
-	u.Path = strings.TrimLeft(u.Path, "/")
 	u.Scheme = "https"
+	u.Path = strings.TrimLeft(u.Path, "/")
 	return u.String()
 }
 
 func copyHeaders(h http.Header) map[string][]string {
 	headers := make(map[string][]string, len(h))
-	for k, value := range h {
+	for k, v := range h {
 		if k != "User-Agent" {
-			headers[k] = value
+			headers[k] = v
 		}
 	}
 	return headers
@@ -58,35 +58,70 @@ func (s *Server) apiProxyHandler(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	url := req.URL
-	url.Path = path
+	u := *req.URL
+	u.Path = path
 
-	resp, err := s.doWithPinRetry(&azuretls.Request{
-		Method:     http.MethodGet,
-		Url:        formatURL(url),
-		Header:     copyHeaders(req.Header),
-		IgnoreBody: true,
-	})
+	endpoint := cache.ExtractEndpoint(&u)
+	cacheKey := cache.BuildCacheKey(&u)
+
+	targetURL := formatURL(&u)
+	reqHeaders := copyHeaders(req.Header)
+	ctx := req.Context()
+
+	fetch := func() (*cache.Response, error) {
+		r := &azuretls.Request{
+			Method:     http.MethodGet,
+			Url:        targetURL,
+			Header:     reqHeaders,
+			IgnoreBody: true,
+		}
+		r.SetContext(ctx)
+		resp, err := s.doWithPinRetry(r)
+		if err != nil {
+			return nil, err
+		}
+		defer resp.RawBody.Close()
+
+		body, err := io.ReadAll(resp.RawBody)
+		if err != nil {
+			return nil, err
+		}
+
+		headers := make(map[string]string)
+		for _, h := range []string{"x-rate-limit-limit", "x-rate-limit-remaining", "x-rate-limit-reset"} {
+			if v := resp.Header.Get(h); v != "" {
+				headers[h] = v
+			}
+		}
+
+		return &cache.Response{StatusCode: resp.StatusCode, Body: body, Headers: headers}, nil
+	}
+
+	result, err := s.cache.Fetch(cacheKey, endpoint, fetch)
 	if err != nil {
-		slog.Error("[API] Proxy error", "error", err)
+		slog.Error("[API] Proxy error", "error", err, "endpoint", endpoint)
 		http.Error(w, "Proxy Error", http.StatusBadGateway)
 		return
 	}
 
-	defer checkClose(resp.RawBody, &err)
-
-	for k, v := range resp.Header {
-		if k == "Content-Length" {
-			continue
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	if len(result.Body) >= 2 && result.Body[0] == 0x1f && result.Body[1] == 0x8b {
+		w.Header().Set("Content-Encoding", "gzip")
+	}
+	switch result.Source {
+	case "upstream":
+		w.Header().Set("X-NP-Cache", "MISS")
+		for k, v := range result.Headers {
+			w.Header().Set(k, v)
 		}
-		for _, val := range v {
-			w.Header().Add(k, val)
-		}
+	case "cache":
+		w.Header().Set("X-NP-Cache", "HIT")
+	case "stale":
+		w.Header().Set("X-NP-Cache", "STALE")
 	}
 
-	w.WriteHeader(resp.StatusCode)
-	_, err = io.Copy(w, resp.RawBody)
-	if err != nil && !isClientDisconnect(err) {
+	w.WriteHeader(result.StatusCode)
+	if _, err := w.Write(result.Body); err != nil && !isClientDisconnect(err) {
 		slog.Error("[API] Write error", "error", err)
 	}
 }

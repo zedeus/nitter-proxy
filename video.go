@@ -10,7 +10,6 @@ import (
 	"strings"
 )
 
-// Headers worth forwarding from twimg responses.
 var videoProxyHeaders = []string{
 	"Accept-Ranges",
 	"Cache-Control",
@@ -163,8 +162,6 @@ func (s *Server) proxyVMAP(w http.ResponseWriter, vmapURL string) {
 	}
 }
 
-// resolveManifestBase extracts the origin and directory path from a manifest URL
-// for resolving relative URLs within the manifest.
 func resolveManifestBase(manifestURL string) (origin, dirPath string) {
 	if manifestURL == "" {
 		return "https://video.twimg.com", ""
@@ -180,8 +177,6 @@ func resolveManifestBase(manifestURL string) (origin, dirPath string) {
 	return
 }
 
-// rewriteM3U8 rewrites relative URLs in an M3U8 playlist to proxied video URLs.
-// manifestURL is the URL the manifest was fetched from, used to resolve relative paths.
 func rewriteM3U8(content, hmacKey, manifestURL string) string {
 	origin, dirPath := resolveManifestBase(manifestURL)
 	lines := strings.Split(content, "\n")
@@ -210,8 +205,6 @@ func rewriteExtXMapURI(line, hmacKey, origin, dirPath string) string {
 	})
 }
 
-// resolveManifestPath resolves a URL from within a manifest against the
-// manifest's origin and directory path.
 func resolveManifestPath(rawURL, origin, dirPath string) string {
 	if strings.HasPrefix(rawURL, "http") {
 		return rawURL
