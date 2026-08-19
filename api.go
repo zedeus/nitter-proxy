@@ -3,15 +3,55 @@ package main
 import (
 	"fmt"
 	"io"
+	"log"
 	"log/slog"
 	"net/http"
 	"net/url"
+	"os"
+	"strconv"
 	"strings"
+	"time"
 	"unicode/utf8"
 
 	"github.com/sardanioss/httpcloak"
 	"github.com/zedeus/nitter-proxy/cache"
 )
+
+var logColor = func() bool {
+	fi, err := os.Stderr.Stat()
+	return err == nil && fi.Mode()&os.ModeCharDevice != 0
+}()
+
+// roundDur rounds to 3 significant figures: 313ms, 1.1s, 1.03s.
+func roundDur(d time.Duration) time.Duration {
+	if d <= 0 {
+		return d
+	}
+	n := int64(d)
+	pow := int64(1)
+	for n/pow >= 1000 {
+		pow *= 10
+	}
+	return time.Duration((n + pow/2) / pow * pow)
+}
+
+func statusTag(code int) string {
+	if !logColor {
+		return strconv.Itoa(code)
+	}
+	bg := 100 // grey
+	switch {
+	case code >= 500:
+		bg = 41 // red
+	case code >= 400:
+		bg = 43 // yellow
+	case code >= 300:
+		bg = 46 // cyan
+	case code >= 200:
+		bg = 42 // green
+	}
+	return fmt.Sprintf("\x1b[%d;30m %d \x1b[0m", bg, code)
+}
 
 const webOrigin = "https://x.com"
 
@@ -100,12 +140,14 @@ func (s *Server) apiProxyHandler(w http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
 
 	fetch := func() (*cache.Response, error) {
+		start := time.Now()
 		resp, err := s.session.Do(ctx, &httpcloak.Request{
 			Method:  http.MethodGet,
 			URL:     targetURL,
 			Headers: reqHeaders,
 		})
 		if err != nil {
+			slog.Warn("[API] GET", "path", targetPath, "dur", roundDur(time.Since(start)), "error", err)
 			return nil, err
 		}
 		defer resp.Close()
@@ -124,6 +166,11 @@ func (s *Server) apiProxyHandler(w http.ResponseWriter, req *http.Request) {
 			)
 			return nil, fmt.Errorf("non-UTF8 upstream body (ce=%q, %d bytes)", resp.GetHeader("content-encoding"), len(body))
 		}
+
+		// Via log, not slog: slog's default handler escapes the ANSI in the
+		// status tag. log shares its writer and timestamp format.
+		log.Printf("INFO [API] GET status=%s proto=%s dur=%s path=%s",
+			statusTag(resp.StatusCode), resp.Protocol, roundDur(time.Since(start)), targetPath)
 
 		headers := make(map[string]string)
 		for _, h := range []string{"x-rate-limit-limit", "x-rate-limit-remaining", "x-rate-limit-reset"} {

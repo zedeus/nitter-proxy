@@ -2,7 +2,10 @@ package main
 
 import (
 	"net/http"
+	"strconv"
+	"strings"
 	"testing"
+	"time"
 )
 
 func TestCloakHeadersStripsAndForwards(t *testing.T) {
@@ -76,6 +79,44 @@ func TestCloakHeadersSiteProjection(t *testing.T) {
 		}
 		if _, hasOrigin := got["origin"]; hasOrigin != tt.wantOrig {
 			t.Errorf("host %q: origin present = %v, want %v", tt.host, hasOrigin, tt.wantOrig)
+		}
+	}
+}
+
+func TestStatusTagColorByClass(t *testing.T) {
+	defer func(prev bool) { logColor = prev }(logColor)
+
+	logColor = false
+	for _, code := range []int{200, 301, 404, 500} {
+		if got := statusTag(code); got != strconv.Itoa(code) {
+			t.Errorf("logColor=false: statusTag(%d) = %q, want plain %d", code, got, code)
+		}
+	}
+
+	logColor = true
+	wantBg := map[int]int{200: 42, 301: 46, 404: 43, 500: 41, 100: 100}
+	for code, bg := range wantBg {
+		got := statusTag(code)
+		if !strings.Contains(got, "\x1b["+strconv.Itoa(bg)+";30m") {
+			t.Errorf("statusTag(%d) = %q, want background %d", code, got, bg)
+		}
+		if !strings.HasSuffix(got, "\x1b[0m") {
+			t.Errorf("statusTag(%d) = %q, want ANSI reset", code, got)
+		}
+	}
+}
+
+func TestRoundDur(t *testing.T) {
+	cases := map[time.Duration]string{
+		312851874 * time.Nanosecond:  "313ms",
+		1096022131 * time.Nanosecond: "1.1s",
+		1034283548 * time.Nanosecond: "1.03s",
+		45200000 * time.Nanosecond:   "45.2ms",
+		500 * time.Nanosecond:        "500ns",
+	}
+	for in, want := range cases {
+		if got := roundDur(in).String(); got != want {
+			t.Errorf("roundDur(%v) = %q, want %q", in, got, want)
 		}
 	}
 }
