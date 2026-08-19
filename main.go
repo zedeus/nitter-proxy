@@ -4,16 +4,17 @@ import (
 	"log"
 	"log/slog"
 	"net/http"
+	"slices"
 	"strconv"
 	"sync"
 	"time"
 
-	"github.com/Noooste/azuretls-client"
+	"github.com/sardanioss/httpcloak"
 	"github.com/zedeus/nitter-proxy/cache"
 )
 
 type Server struct {
-	session    *azuretls.Session
+	session    *httpcloak.Session
 	httpClient *http.Client
 	hmacKey    string
 	cache      *cache.Cache
@@ -33,10 +34,18 @@ func main() {
 		log.Fatal(err)
 	}
 
-	session := azuretls.NewSession()
-	session.UserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
-	session.EnableLog()
+	if !slices.Contains(httpcloak.Presets(), cfg.Config.Fingerprint) {
+		log.Fatalf("unknown fingerprint preset %q; see httpcloak.Presets()", cfg.Config.Fingerprint)
+	}
+
+	session := httpcloak.NewSession(
+		cfg.Config.Fingerprint,
+		httpcloak.WithoutCookieJar(),
+		httpcloak.WithoutConditionalCache(),
+		httpcloak.WithDisableHTTP3(),
+	)
 	defer session.Close()
+	slog.Info("Fingerprint", "preset", cfg.Config.Fingerprint)
 
 	httpClient := &http.Client{
 		Transport: &http.Transport{

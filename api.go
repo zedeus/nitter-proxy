@@ -1,37 +1,38 @@
 package main
 
 import (
+	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
 	"net/url"
 	"strings"
+	"unicode/utf8"
 
-	"github.com/Noooste/azuretls-client"
+	"github.com/sardanioss/httpcloak"
 	"github.com/zedeus/nitter-proxy/cache"
 )
 
-func (s *Server) doWithPinRetry(r *azuretls.Request) (*azuretls.Response, error) {
-	resp, err := s.session.Do(r)
-	if err != nil && strings.Contains(err.Error(), "pin verification failed") {
-		u, parseErr := url.Parse(r.Url)
-		if parseErr == nil {
-			if resp != nil && resp.RawBody != nil {
-				resp.RawBody.Close()
-			}
-			slog.Warn("[API] Pin verification failed, clearing pins and retrying", "host", u.Host)
-			s.session.ClearPins(u)
-			// session.Do mutates request state, so we need a fresh one
-			retry := &azuretls.Request{
-				Method:     r.Method,
-				Url:        r.Url,
-				Header:     r.Header,
-				IgnoreBody: r.IgnoreBody,
-			}
-			resp, err = s.session.Do(retry)
-		}
-	}
-	return resp, err
+const webOrigin = "https://x.com"
+
+var skipHeaders = map[string]bool{
+	"user-agent":                true,
+	"accept":                    true,
+	"accept-encoding":           true,
+	"accept-language":           true,
+	"priority":                  true,
+	"origin":                    true,
+	"referer":                   true,
+	"upgrade-insecure-requests": true,
+	"dnt":                       true,
+	"connection":                true,
+	"proxy-connection":          true,
+	"keep-alive":                true,
+	"transfer-encoding":         true,
+	"te":                        true,
+	"upgrade":                   true,
+	"host":                      true,
+	"content-length":            true,
 }
 
 func formatURL(u *url.URL) string {
@@ -40,13 +41,39 @@ func formatURL(u *url.URL) string {
 	return u.String()
 }
 
-func copyHeaders(h http.Header) map[string][]string {
-	headers := make(map[string][]string, len(h))
+// cloakHeaders forwards the caller's app-layer headers and sets the Sec-Fetch
+// context for an XHR from the X web app. Sec-Fetch-Mode must be explicit or
+// httpcloak treats the GET as a navigation, which WAFs flag on API endpoints.
+// Referer is the bare origin because Chrome's referrer policy drops the path
+// cross-origin.
+func cloakHeaders(h http.Header, targetHost string) map[string][]string {
+	headers := make(map[string][]string, len(h)+4)
 	for k, v := range h {
-		if k != "User-Agent" {
-			headers[k] = v
+		lower := strings.ToLower(k)
+		if skipHeaders[lower] ||
+			strings.HasPrefix(lower, "sec-ch-") ||
+			strings.HasPrefix(lower, "sec-fetch-") {
+			continue
 		}
+		headers[lower] = v
 	}
+
+	headers["sec-fetch-mode"] = []string{"cors"}
+	headers["sec-fetch-dest"] = []string{"empty"}
+	headers["referer"] = []string{webOrigin + "/"}
+
+	webHost := strings.TrimPrefix(webOrigin, "https://")
+	switch {
+	case targetHost == webHost:
+		headers["sec-fetch-site"] = []string{"same-origin"}
+	case strings.HasSuffix(targetHost, "."+webHost):
+		headers["sec-fetch-site"] = []string{"same-site"}
+		headers["origin"] = []string{webOrigin}
+	default:
+		headers["sec-fetch-site"] = []string{"cross-site"}
+		headers["origin"] = []string{webOrigin}
+	}
+
 	return headers
 }
 
@@ -65,31 +92,42 @@ func (s *Server) apiProxyHandler(w http.ResponseWriter, req *http.Request) {
 	cacheKey := cache.BuildCacheKey(&u)
 
 	targetURL := formatURL(&u)
-	reqHeaders := copyHeaders(req.Header)
+	targetHost, targetPath := "", u.Path
+	if parsed, err := url.Parse(targetURL); err == nil {
+		targetHost, targetPath = parsed.Host, parsed.Path
+	}
+	reqHeaders := cloakHeaders(req.Header, targetHost)
 	ctx := req.Context()
 
 	fetch := func() (*cache.Response, error) {
-		r := &azuretls.Request{
-			Method:     http.MethodGet,
-			Url:        targetURL,
-			Header:     reqHeaders,
-			IgnoreBody: true,
-		}
-		r.SetContext(ctx)
-		resp, err := s.doWithPinRetry(r)
+		resp, err := s.session.Do(ctx, &httpcloak.Request{
+			Method:  http.MethodGet,
+			URL:     targetURL,
+			Headers: reqHeaders,
+		})
 		if err != nil {
 			return nil, err
 		}
-		defer resp.RawBody.Close()
+		defer resp.Close()
 
-		body, err := io.ReadAll(resp.RawBody)
+		body, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return nil, err
+		}
+
+		if !utf8.Valid(body) {
+			slog.Warn("[API] non-UTF8 upstream body, not caching",
+				"status", resp.StatusCode,
+				"content-encoding", resp.GetHeader("content-encoding"),
+				"len", len(body),
+				"path", targetPath,
+			)
+			return nil, fmt.Errorf("non-UTF8 upstream body (ce=%q, %d bytes)", resp.GetHeader("content-encoding"), len(body))
 		}
 
 		headers := make(map[string]string)
 		for _, h := range []string{"x-rate-limit-limit", "x-rate-limit-remaining", "x-rate-limit-reset"} {
-			if v := resp.Header.Get(h); v != "" {
+			if v := resp.GetHeader(h); v != "" {
 				headers[h] = v
 			}
 		}
@@ -105,9 +143,6 @@ func (s *Server) apiProxyHandler(w http.ResponseWriter, req *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	if len(result.Body) >= 2 && result.Body[0] == 0x1f && result.Body[1] == 0x8b {
-		w.Header().Set("Content-Encoding", "gzip")
-	}
 	switch result.Source {
 	case "upstream":
 		w.Header().Set("X-NP-Cache", "MISS")

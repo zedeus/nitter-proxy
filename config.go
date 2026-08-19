@@ -21,6 +21,9 @@ type ServerConfig struct {
 
 type ConfigSection struct {
 	HMACKey string `toml:"hmacKey"`
+	// Fingerprint is the httpcloak browser preset (e.g. "chrome-latest-windows",
+	// "safari-18"); see httpcloak.Presets() for the full list.
+	Fingerprint string `toml:"fingerprint"`
 }
 
 func loadConfig() (*Config, error) {
@@ -33,7 +36,8 @@ func loadConfig() (*Config, error) {
 			Port:    7000,
 		},
 		Config: ConfigSection{
-			HMACKey: "secretkey",
+			HMACKey:     "secretkey",
+			Fingerprint: "chrome-latest-windows",
 		},
 		Cache: cache.DefaultConfig(),
 	}
