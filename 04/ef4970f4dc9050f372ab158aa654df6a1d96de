@@ -1,0 +1,48 @@
+api_test.go
+  s_de288c4cb1c127::t_d1aa90c2e920e2 66,77
+  s_de288c4cb1c127::t_a555582f554c8a 1-65,67-76,78-81
+config.go
+  s_de288c4cb1c127::t_457e55561c063f 26
+  s_de288c4cb1c127::t_9d955c346f277e 24-25
+  s_de288c4cb1c127::t_b7747e89b2056e 39-40
+go.mod
+  s_de288c4cb1c127::t_d78d517a747064 3
+  s_de288c4cb1c127::t_c83e32c0e649a1 8,15
+  s_de288c4cb1c127::t_337828449ae559 17-23,25-30
+api.go
+  s_de288c4cb1c127::t_957a1e38984ea5 123-131
+  s_de288c4cb1c127::t_63cbc3cf629d44 62,99,101-102
+  s_de288c4cb1c127::t_caa07aec8f4cac 18-20,47-48,50-51,121-122
+  s_de288c4cb1c127::t_a368eb8bf203eb 72
+  s_de288c4cb1c127::t_30aadc879cb0c9 10
+  s_de288c4cb1c127::t_600a024e04184d 4
+  s_de288c4cb1c127::t_fbf377305a13e4 98,100
+  s_de288c4cb1c127::t_118f43fc290136 16-17,27-28,52-53,63,65-71,73-77,79
+  s_de288c4cb1c127::t_b040a18b96483b 132
+  s_de288c4cb1c127::t_41082a853cbdc9 49
+  s_de288c4cb1c127::t_e3bc4b83c78bba 12,21-26,29-38,55-59,61,64,106-110,114,116,135
+main.go
+  s_de288c4cb1c127::t_a594a7b5cf0270 41-44
+  s_de288c4cb1c127::t_f0a98b0e0f2a19 37-40,45-48,50,52
+  s_de288c4cb1c127::t_fac6858b57e95a 7
+  s_de288c4cb1c127::t_cba895e53f91e5 12,17
+  s_de288c4cb1c127::t_6fba13785deee6 49
+go.sum
+  s_de288c4cb1c127::t_8cfb70ab79c824 19-20,25-38,49-54,57-62
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "04ef4970f4dc9050f372ab158aa654df6a1d96de",
+  "prompts": {},
+  "sessions": {
+    "s_de288c4cb1c127": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f5bb55f0-5079-4f95-9163-8dba64365f8f",
+        "model": "metr-model"
+      },
+      "human_author": "Zed <zedeus@pm.me>"
+    }
+  }
+}
