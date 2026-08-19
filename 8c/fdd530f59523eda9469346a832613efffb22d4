@@ -1,0 +1,22 @@
+api_test.go
+  s_de288c4cb1c127::t_1fa0c9ed5ef851 5-6,8,85-122
+api.go
+  s_de288c4cb1c127::t_4990101b731192 6,10-11,13,20-56,147,154,176-179
+  s_de288c4cb1c127::t_c1fb587f39dad2 180
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "8cfdd530f59523eda9469346a832613efffb22d4",
+  "prompts": {},
+  "sessions": {
+    "s_de288c4cb1c127": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f5bb55f0-5079-4f95-9163-8dba64365f8f",
+        "model": "metr-model"
+      },
+      "human_author": "Zed <zedeus@pm.me>"
+    }
+  }
+}
