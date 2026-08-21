@@ -1,0 +1,19 @@
+dashboard.html
+  s_5da06144dc8fe4::t_2bb7c0e6fec84f 478-480,483
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.23",
+  "base_commit_sha": "ee10e3d6deb2156ef150f158081bd2b6bff06b21",
+  "prompts": {},
+  "sessions": {
+    "s_5da06144dc8fe4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2d33f1cd-9501-4a15-973f-0a3c71a678ce",
+        "model": "metr-model"
+      },
+      "human_author": "Zed <zedeus@pm.me>"
+    }
+  }
+}
