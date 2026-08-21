@@ -1,0 +1,26 @@
+dashboard.html
+  s_5da06144dc8fe4::t_f2a554c057bdab 398
+  s_5da06144dc8fe4::t_4cd59ebc09f313 282
+  s_5da06144dc8fe4::t_0f0ab3d18fe339 379-380
+  s_5da06144dc8fe4::t_003c21adbee791 1-281,283-378,381-397,399-515
+cache/metrics.go
+  s_5da06144dc8fe4::t_4c3fb46df28987 61-62,65-73
+main.go
+  s_5da06144dc8fe4::t_00ec5ff0590411 4,32-34,84-87
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.23",
+  "base_commit_sha": "9230b9ade37432b32911d2c17894fded85add92b",
+  "prompts": {},
+  "sessions": {
+    "s_5da06144dc8fe4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2d33f1cd-9501-4a15-973f-0a3c71a678ce",
+        "model": "metr-model"
+      },
+      "human_author": "Zed <zedeus@pm.me>"
+    }
+  }
+}
