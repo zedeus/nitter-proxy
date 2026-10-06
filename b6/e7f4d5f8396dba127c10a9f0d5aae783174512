@@ -1,0 +1,19 @@
+go.mod
+  s_a61ed7fad7bd85::t_8661b823532275 3
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b6e7f4d5f8396dba127c10a9f0d5aae783174512",
+  "prompts": {},
+  "sessions": {
+    "s_a61ed7fad7bd85": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "8ec85957-8ccb-42ac-a3c1-f462a0e7be98",
+        "model": "metr-model"
+      },
+      "human_author": "Zed <zedeus@pm.me>"
+    }
+  }
+}
