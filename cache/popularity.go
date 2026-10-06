@@ -117,7 +117,7 @@ func (p *popularityTracker) Count(key string) int {
 }
 
 func (p *popularityTracker) IsPopular(key string) bool {
-	return p.Count(key) >= p.threshold
+	return p.Count(key) > p.threshold
 }
 
 func (p *popularityTracker) Len() int {

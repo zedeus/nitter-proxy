@@ -275,6 +275,158 @@ func TestFetch_ErrorPassthroughWithoutStale(t *testing.T) {
 	}
 }
 
+func TestPopularityThreshold_DefaultRejectsFirstRequest(t *testing.T) {
+	// Default threshold=1 means "accessed 1 time before becoming eligible".
+	// 1st request: rejected (no previous accesses)
+	// 2nd request: upstream again, but now admitted into cache
+	// 3rd request: cache hit
+	c := testCache(t, func(cfg *Config) {
+		cfg.PopularityThreshold = 1
+	})
+
+	var fetchCount atomic.Int32
+	fetch := func() (*Response, error) {
+		fetchCount.Add(1)
+		return &Response{StatusCode: 200, Body: []byte(`{"data": true}`)}, nil
+	}
+
+	// 1st request: miss, not yet popular enough to cache
+	r1, err := c.Fetch("pop-key", "TestEndpoint", fetch)
+	if err != nil {
+		t.Fatalf("Fetch error: %v", err)
+	}
+	if r1.Source != "upstream" {
+		t.Errorf("1st request: source = %s, want upstream", r1.Source)
+	}
+
+	time.Sleep(10 * time.Millisecond)
+
+	// 2nd request: miss again, but this time the response IS cached
+	r2, err := c.Fetch("pop-key", "TestEndpoint", fetch)
+	if err != nil {
+		t.Fatalf("Fetch error: %v", err)
+	}
+	if r2.Source != "upstream" {
+		t.Errorf("2nd request: source = %s, want upstream", r2.Source)
+	}
+
+	time.Sleep(10 * time.Millisecond)
+
+	// 3rd request: cache hit
+	r3, err := c.Fetch("pop-key", "TestEndpoint", fetch)
+	if err != nil {
+		t.Fatalf("Fetch error: %v", err)
+	}
+	if r3.Source != "cache" {
+		t.Errorf("3rd request: source = %s, want cache", r3.Source)
+	}
+
+	if fetchCount.Load() != 2 {
+		t.Errorf("fetch count = %d, want 2", fetchCount.Load())
+	}
+}
+
+func TestPopularityThreshold_ZeroCachesImmediately(t *testing.T) {
+	c := testCache(t, func(cfg *Config) {
+		cfg.PopularityThreshold = 0
+	})
+
+	var fetchCount atomic.Int32
+	fetch := func() (*Response, error) {
+		fetchCount.Add(1)
+		return &Response{StatusCode: 200, Body: []byte(`{"data": true}`)}, nil
+	}
+
+	r1, _ := c.Fetch("imm-key", "TestEndpoint", fetch)
+	if r1.Source != "upstream" {
+		t.Errorf("1st request: source = %s, want upstream", r1.Source)
+	}
+
+	time.Sleep(10 * time.Millisecond)
+
+	r2, _ := c.Fetch("imm-key", "TestEndpoint", fetch)
+	if r2.Source != "cache" {
+		t.Errorf("2nd request: source = %s, want cache", r2.Source)
+	}
+
+	if fetchCount.Load() != 1 {
+		t.Errorf("fetch count = %d, want 1", fetchCount.Load())
+	}
+}
+
+func TestPopularityThreshold_EndpointOverride(t *testing.T) {
+	// Global threshold=0 (cache immediately), but SearchTimeline=3
+	// means SearchTimeline needs 3 previous accesses before caching.
+	c := testCache(t, func(cfg *Config) {
+		cfg.PopularityThreshold = 0
+		cfg.EndpointThresholds = map[string]int{"SearchTimeline": 3}
+		cfg.Whitelist = []string{"TestEndpoint", "SearchTimeline"}
+	})
+
+	var fetchCount atomic.Int32
+	fetch := func() (*Response, error) {
+		fetchCount.Add(1)
+		return &Response{StatusCode: 200, Body: []byte(`{}`)}, nil
+	}
+
+	// Requests 1-3: all rejected for SearchTimeline
+	for i := 1; i <= 3; i++ {
+		r, _ := c.Fetch("search-key", "SearchTimeline", fetch)
+		if r.Source != "upstream" {
+			t.Errorf("request %d: source = %s, want upstream", i, r.Source)
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+
+	// Request 4: still upstream, but this one gets cached
+	r4, _ := c.Fetch("search-key", "SearchTimeline", fetch)
+	if r4.Source != "upstream" {
+		t.Errorf("request 4: source = %s, want upstream", r4.Source)
+	}
+
+	time.Sleep(10 * time.Millisecond)
+
+	// Request 5: cache hit
+	r5, _ := c.Fetch("search-key", "SearchTimeline", fetch)
+	if r5.Source != "cache" {
+		t.Errorf("request 5: source = %s, want cache", r5.Source)
+	}
+
+	if fetchCount.Load() != 4 {
+		t.Errorf("fetch count = %d, want 4", fetchCount.Load())
+	}
+}
+
+func TestPopularityThreshold_AdmissionMetrics(t *testing.T) {
+	c := testCache(t, func(cfg *Config) {
+		cfg.PopularityThreshold = 1
+	})
+
+	fetch := func() (*Response, error) {
+		return &Response{StatusCode: 200, Body: []byte(`{}`)}, nil
+	}
+
+	// 1st request: should be rejected
+	c.Fetch("metrics-key", "TestEndpoint", fetch)
+	if c.metrics.AdmissionRejected.Load() != 1 {
+		t.Errorf("admission_rejected = %d, want 1", c.metrics.AdmissionRejected.Load())
+	}
+	if c.metrics.AdmissionAccepted.Load() != 0 {
+		t.Errorf("admission_accepted = %d, want 0", c.metrics.AdmissionAccepted.Load())
+	}
+
+	time.Sleep(10 * time.Millisecond)
+
+	// 2nd request: should be accepted
+	c.Fetch("metrics-key", "TestEndpoint", fetch)
+	if c.metrics.AdmissionRejected.Load() != 1 {
+		t.Errorf("admission_rejected = %d, want 1", c.metrics.AdmissionRejected.Load())
+	}
+	if c.metrics.AdmissionAccepted.Load() != 1 {
+		t.Errorf("admission_accepted = %d, want 1", c.metrics.AdmissionAccepted.Load())
+	}
+}
+
 func TestWhitelist(t *testing.T) {
 	cfg := DefaultConfig()
 	cfg.RedisAddr = getTestRedisAddr(t)

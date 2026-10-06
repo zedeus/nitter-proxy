@@ -342,7 +342,7 @@ func (c *Cache) Fetch(key, endpoint string, fetch func() (*Response, error)) (*R
 		}
 
 		threshold := c.ThresholdFor(endpoint)
-		if threshold == 0 || c.popularity.Count(key) >= threshold {
+		if threshold == 0 || c.popularity.Count(key) > threshold {
 			c.set(key, e)
 			c.metrics.AdmissionAccepted.Add(1)
 		} else {
