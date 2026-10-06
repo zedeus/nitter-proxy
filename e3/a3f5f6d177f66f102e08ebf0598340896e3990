@@ -1,0 +1,42 @@
+.github/workflows/ci.yml
+  s_a61ed7fad7bd85::t_75ebff9f0e47a2 1-11,13,15-21
+  s_a61ed7fad7bd85::t_c0c58530144317 12,14
+  s_a61ed7fad7bd85::t_35a174d66ba13f 22-28
+cache/cache.go
+  s_a61ed7fad7bd85::t_5f76c8214b1bb4 187
+.golangci.yml
+  s_a61ed7fad7bd85::t_0e07305917ed9d 12-16
+  s_a61ed7fad7bd85::t_5d5885c3ae44b7 3-10
+  s_a61ed7fad7bd85::t_f0d66222df7c2e 1-2
+  s_a61ed7fad7bd85::t_3249c5e67aef21 17,45-48
+  s_a61ed7fad7bd85::t_66397c4386db00 11,18-43
+  s_a61ed7fad7bd85::t_687d04080b8e2c 44
+api.go
+  s_a61ed7fad7bd85::t_5f76c8214b1bb4 153
+cache/cache_key_test.go
+  s_a61ed7fad7bd85::t_5f76c8214b1bb4 33-34
+cache/test_helpers_test.go
+  s_a61ed7fad7bd85::t_5f76c8214b1bb4 68
+metrics.go
+  s_a61ed7fad7bd85::t_5f76c8214b1bb4 17,62
+go.mod
+  s_a61ed7fad7bd85::t_0e6d2411a01bc2 9,25-30
+go.sum
+  s_a61ed7fad7bd85::t_ece64e9b20ce2f 49-62
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e3a3f5f6d177f66f102e08ebf0598340896e3990",
+  "prompts": {},
+  "sessions": {
+    "s_a61ed7fad7bd85": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "8ec85957-8ccb-42ac-a3c1-f462a0e7be98",
+        "model": "metr-model"
+      },
+      "human_author": "Zed <zedeus@pm.me>"
+    }
+  }
+}

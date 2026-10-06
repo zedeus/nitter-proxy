@@ -1,0 +1,31 @@
+cache/cache.go
+  s_a61ed7fad7bd85::t_0734c03e62b6d1 362-366
+.golangci.yml
+  s_a61ed7fad7bd85::t_045e073439ab30 20-45,51-52,56-58,63-97
+  s_a61ed7fad7bd85::t_f48fc32ad760d9 98
+metrics.go
+  s_a61ed7fad7bd85::t_0734c03e62b6d1 39-40,43-44,59-60
+  s_a61ed7fad7bd85::t_570346071e76da 46-54
+  s_a61ed7fad7bd85::t_7981b2c4a6c3ab 62-70
+cache/cache_test.go
+  s_a61ed7fad7bd85::t_ec8ffb13c1a0a2 4
+  s_a61ed7fad7bd85::t_0734c03e62b6d1 110
+utils.go
+  s_a61ed7fad7bd85::t_c602e65df9e376 48-52
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8f231893d3ee831c3ad172a0aa99e160bdf1ac81",
+  "prompts": {},
+  "sessions": {
+    "s_a61ed7fad7bd85": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "8ec85957-8ccb-42ac-a3c1-f462a0e7be98",
+        "model": "metr-model"
+      },
+      "human_author": "Zed <zedeus@pm.me>"
+    }
+  }
+}
