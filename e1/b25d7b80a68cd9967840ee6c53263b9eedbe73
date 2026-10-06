@@ -1,0 +1,20 @@
+.golangci.yml
+  s_a61ed7fad7bd85::t_66397c4386db00 11,18-43
+  s_a61ed7fad7bd85::t_687d04080b8e2c 44
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e1b25d7b80a68cd9967840ee6c53263b9eedbe73",
+  "prompts": {},
+  "sessions": {
+    "s_a61ed7fad7bd85": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "8ec85957-8ccb-42ac-a3c1-f462a0e7be98",
+        "model": "metr-model"
+      },
+      "human_author": "Zed <zedeus@pm.me>"
+    }
+  }
+}
