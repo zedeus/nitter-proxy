@@ -30,7 +30,8 @@ func TestBuildCacheKey_VariablesAffectKey(t *testing.T) {
 
 func TestBuildCacheKey_Deterministic(t *testing.T) {
 	u, _ := url.Parse("https://api.x.com/graphql/abc/UserByScreenName?variables={}")
-	if BuildCacheKey(u) != BuildCacheKey(u) {
+	key1, key2 := BuildCacheKey(u), BuildCacheKey(u)
+	if key1 != key2 {
 		t.Error("cache keys should be deterministic")
 	}
 }

@@ -14,7 +14,7 @@ func (s *Server) metricsHandler(w http.ResponseWriter, req *http.Request) {
 	if strings.Contains(accept, "application/json") || req.URL.Query().Get("format") == "json" {
 		w.Header().Set("Content-Type", "application/json")
 		snapshot := s.cache.Metrics().Snapshot()
-		json.NewEncoder(w).Encode(snapshot)
+		_ = json.NewEncoder(w).Encode(snapshot)
 		return
 	}
 
@@ -59,7 +59,7 @@ func (s *Server) metricsHandler(w http.ResponseWriter, req *http.Request) {
 		return true
 	})
 
-	w.Write([]byte(b.String()))
+	_, _ = w.Write([]byte(b.String()))
 }
 
 func writeMetric(b *strings.Builder, name, help string, value uint64) {

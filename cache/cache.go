@@ -184,7 +184,7 @@ func (c *Cache) Close() {
 		c.popularity.Close()
 	}
 	if c.redis != nil {
-		c.redis.Close()
+		_ = c.redis.Close()
 	}
 }
 

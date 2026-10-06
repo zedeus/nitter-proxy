@@ -1,0 +1,20 @@
+version: "2"
+
+linters:
+  enable:
+    - errcheck
+    - govet
+    - staticcheck
+    - ineffassign
+    - unconvert
+    - gocritic
+
+  settings:
+    gocritic:
+      disabled-checks:
+        - exitAfterDefer
+
+  exclusions:
+    rules:
+      - linters: [errcheck]
+        path: _test\.go
