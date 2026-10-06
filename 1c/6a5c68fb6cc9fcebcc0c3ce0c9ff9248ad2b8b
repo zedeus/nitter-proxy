@@ -1,0 +1,23 @@
+cache/cache.go
+  s_af0469b18f9a66::t_8f16982e425cab 345
+cache/cache_test.go
+  s_af0469b18f9a66::t_28e0aa7caf9c43 278-429
+cache/popularity.go
+  s_af0469b18f9a66::t_2e3ccc0e6f10aa 120
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "1c6a5c68fb6cc9fcebcc0c3ce0c9ff9248ad2b8b",
+  "prompts": {},
+  "sessions": {
+    "s_af0469b18f9a66": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f10f5244-c1ee-46c0-b8c4-bb1835b6e6c0",
+        "model": "metr-model"
+      },
+      "human_author": "Zed <zedeus@pm.me>"
+    }
+  }
+}
