@@ -1,0 +1,24 @@
+go.mod
+  s_a61ed7fad7bd85::t_0e6d2411a01bc2 9,25-30
+go.sum
+  s_a61ed7fad7bd85::t_ece64e9b20ce2f 49-62
+.golangci.yml
+  s_a61ed7fad7bd85::t_66397c4386db00 11,18-43
+  s_a61ed7fad7bd85::t_687d04080b8e2c 44
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "6d7079d1397708c5b1eb9c0e0de1dc5f860f4b4b",
+  "prompts": {},
+  "sessions": {
+    "s_a61ed7fad7bd85": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "8ec85957-8ccb-42ac-a3c1-f462a0e7be98",
+        "model": "metr-model"
+      },
+      "human_author": "Zed <zedeus@pm.me>"
+    }
+  }
+}
