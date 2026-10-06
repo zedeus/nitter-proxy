@@ -150,7 +150,7 @@ func (s *Server) apiProxyHandler(w http.ResponseWriter, req *http.Request) {
 			slog.Warn("[API] GET", "path", targetPath, "dur", roundDur(time.Since(start)), "error", err)
 			return nil, err
 		}
-		defer resp.Close()
+		defer func() { _ = resp.Close() }()
 
 		body, err := io.ReadAll(resp.Body)
 		if err != nil {

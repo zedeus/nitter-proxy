@@ -1,0 +1,102 @@
+version: "2"
+
+linters:
+  enable:
+    - errcheck
+    - govet
+    - staticcheck
+    - ineffassign
+    - unconvert
+    - gocritic
+    - revive
+
+  settings:
+    gocritic:
+      disabled-checks:
+        - exitAfterDefer
+
+    revive:
+      rules:
+        # correctness
+        - name: atomic
+        - name: constant-logical-expr
+        - name: datarace
+        - name: identical-branches
+        - name: identical-ifelseif-branches
+        - name: identical-ifelseif-conditions
+        - name: identical-switch-branches
+        - name: identical-switch-conditions
+        - name: modifies-value-receiver
+        - name: range-val-address
+        - name: range-val-in-closure
+        - name: unconditional-recursion
+        - name: unreachable-code
+        - name: waitgroup-by-value
+        - name: forbidden-call-in-wg-go
+
+        # error handling
+        - name: error-naming
+        - name: error-return
+        - name: error-strings
+        - name: errorf
+        - name: unchecked-type-assertion
+        - name: use-errors-new
+
+        # conventions
+        - name: blank-imports
+        - name: context-as-argument
+        - name: context-keys-type
+        - name: defer
+        - name: dot-imports
+        - name: duplicated-imports
+        - name: import-shadowing
+        - name: increment-decrement
+        - name: receiver-naming
+        - name: redefines-builtin-id
+        - name: struct-tag
+        - name: time-equal
+        - name: time-date
+        - name: time-naming
+        - name: var-declaration
+        - name: var-naming
+
+        # simplification
+        - name: bool-literal-in-expr
+        - name: confusing-naming
+        - name: confusing-results
+        - name: early-return
+        - name: empty-block
+        - name: if-return
+        - name: indent-error-flow
+        - name: superfluous-else
+        - name: unnecessary-format
+        - name: unnecessary-if
+        - name: unnecessary-stmt
+        - name: optimize-operands-order
+        - name: redundant-import-alias
+        - name: redundant-build-tag
+
+        # modernization
+        - name: use-any
+        - name: use-fmt-print
+        - name: use-slices-sort
+        - name: use-waitgroup-go
+        - name: useless-break
+        - name: useless-fallthrough
+
+        # misc
+        - name: call-to-gc
+        - name: get-return
+        - name: inefficient-map-lookup
+        - name: modifies-parameter
+        - name: range
+        - name: string-of-int
+        - name: unexported-naming
+        - name: unexported-return
+        - name: unused-parameter
+        - name: unused-receiver
+
+  exclusions:
+    rules:
+      - linters: [errcheck]
+        path: _test\.go

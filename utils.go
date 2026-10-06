@@ -45,7 +45,11 @@ func (s *Server) fetchBody(rawURL string) (body string, err error) {
 }
 
 func copyBody(dst io.Writer, src io.Reader) (int64, error) {
-	bufp := copyBufPool.Get().(*[]byte)
+	bufp, ok := copyBufPool.Get().(*[]byte)
+	if !ok {
+		buf := make([]byte, 32*1024)
+		bufp = &buf
+	}
 	defer copyBufPool.Put(bufp)
 	return io.CopyBuffer(dst, src, *bufp)
 }

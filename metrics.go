@@ -14,7 +14,7 @@ func (s *Server) metricsHandler(w http.ResponseWriter, req *http.Request) {
 	if strings.Contains(accept, "application/json") || req.URL.Query().Get("format") == "json" {
 		w.Header().Set("Content-Type", "application/json")
 		snapshot := s.cache.Metrics().Snapshot()
-		json.NewEncoder(w).Encode(snapshot)
+		_ = json.NewEncoder(w).Encode(snapshot)
 		return
 	}
 
@@ -36,30 +36,42 @@ func (s *Server) metricsHandler(w http.ResponseWriter, req *http.Request) {
 	writeMetric(&b, "nitter_proxy_admission_rejected_total", "Items not cached due to low popularity", m.AdmissionRejected.Load())
 
 	hitRate := m.HitRate()
-	fmt.Fprintf(&b, "# HELP nitter_proxy_cache_hit_rate Cache hit rate (0-1)\n")
-	fmt.Fprintf(&b, "# TYPE nitter_proxy_cache_hit_rate gauge\n")
+	fmt.Fprint(&b, "# HELP nitter_proxy_cache_hit_rate Cache hit rate (0-1)\n")
+	fmt.Fprint(&b, "# TYPE nitter_proxy_cache_hit_rate gauge\n")
 	fmt.Fprintf(&b, "nitter_proxy_cache_hit_rate %.4f\n\n", hitRate)
 
-	fmt.Fprintf(&b, "# HELP nitter_proxy_cache_endpoint_hits_total Cache hits per endpoint\n")
-	fmt.Fprintf(&b, "# TYPE nitter_proxy_cache_endpoint_hits_total counter\n")
+	fmt.Fprint(&b, "# HELP nitter_proxy_cache_endpoint_hits_total Cache hits per endpoint\n")
+	fmt.Fprint(&b, "# TYPE nitter_proxy_cache_endpoint_hits_total counter\n")
 	m.EndpointHits.Range(func(key, value any) bool {
-		endpoint := key.(string)
-		count := value.(*atomic.Uint64).Load()
-		fmt.Fprintf(&b, "nitter_proxy_cache_endpoint_hits_total{endpoint=%q} %d\n", endpoint, count)
+		endpoint, ok := key.(string)
+		if !ok {
+			return true
+		}
+		cnt, ok := value.(*atomic.Uint64)
+		if !ok {
+			return true
+		}
+		fmt.Fprintf(&b, "nitter_proxy_cache_endpoint_hits_total{endpoint=%q} %d\n", endpoint, cnt.Load())
 		return true
 	})
 	b.WriteString("\n")
 
-	fmt.Fprintf(&b, "# HELP nitter_proxy_cache_endpoint_misses_total Cache misses per endpoint\n")
-	fmt.Fprintf(&b, "# TYPE nitter_proxy_cache_endpoint_misses_total counter\n")
+	fmt.Fprint(&b, "# HELP nitter_proxy_cache_endpoint_misses_total Cache misses per endpoint\n")
+	fmt.Fprint(&b, "# TYPE nitter_proxy_cache_endpoint_misses_total counter\n")
 	m.EndpointMisses.Range(func(key, value any) bool {
-		endpoint := key.(string)
-		count := value.(*atomic.Uint64).Load()
-		fmt.Fprintf(&b, "nitter_proxy_cache_endpoint_misses_total{endpoint=%q} %d\n", endpoint, count)
+		endpoint, ok := key.(string)
+		if !ok {
+			return true
+		}
+		cnt, ok := value.(*atomic.Uint64)
+		if !ok {
+			return true
+		}
+		fmt.Fprintf(&b, "nitter_proxy_cache_endpoint_misses_total{endpoint=%q} %d\n", endpoint, cnt.Load())
 		return true
 	})
 
-	w.Write([]byte(b.String()))
+	_, _ = w.Write([]byte(b.String()))
 }
 
 func writeMetric(b *strings.Builder, name, help string, value uint64) {

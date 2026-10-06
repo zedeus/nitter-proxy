@@ -65,6 +65,6 @@ func getTestRedisAddr(t *testing.T) string {
 	if err := rdb.Ping(ctx).Err(); err != nil {
 		t.Skipf("Redis not available at %s: %v", addr, err)
 	}
-	rdb.Close()
+	_ = rdb.Close()
 	return addr
 }
