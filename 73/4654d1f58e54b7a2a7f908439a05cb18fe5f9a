@@ -1,0 +1,34 @@
+cache/test_helpers_test.go
+  s_a5b0709ae7d67a::t_8dd84816cb21fa 5
+  s_a5b0709ae7d67a::t_06d9b61396afa6 13-44
+cache/metrics.go
+  s_a5b0709ae7d67a::t_20badc928cc021 17
+  s_a5b0709ae7d67a::t_fd779b55ed28dd 59
+cache/cache_test.go
+  s_a5b0709ae7d67a::t_2d7a229faf4f02 202-203,205-207,209,213-214,217-219,221-222,228-229,231-238,241,244-246,248-249,251-253,259,261,267,269,272
+  s_a5b0709ae7d67a::t_91484d01b23358 258,260,262-266,268,270-271,273-277
+  s_a5b0709ae7d67a::t_0e3afdad8ab58a 204,208,210-212,215-216,220,223-227,230,239-240,242-243,247,250,254-257
+metrics.go
+  s_a5b0709ae7d67a::t_3a2028abae4516 34
+cache/cache.go
+  s_a5b0709ae7d67a::t_01704701c7b534 318-323
+  s_a5b0709ae7d67a::t_80a14009fb14a6 324,327-330
+  s_a5b0709ae7d67a::t_eeab8731ac7b78 312-313,325-326
+  s_a5b0709ae7d67a::t_5e70bc58e24031 261-279
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "734654d1f58e54b7a2a7f908439a05cb18fe5f9a",
+  "prompts": {},
+  "sessions": {
+    "s_a5b0709ae7d67a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "da7ea85b-2cf3-4430-bafd-5bd17a8cb891",
+        "model": "metr-model"
+      },
+      "human_author": "Zed <zedeus@pm.me>"
+    }
+  }
+}
