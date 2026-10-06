@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -28,6 +29,15 @@ func testCache(t *testing.T, opts ...func(*Config)) *Cache {
 	}
 	t.Cleanup(c.Close)
 	return c
+}
+
+// countingFetch returns a fetch function that counts calls and returns
+// a 200 response with the given body.
+func countingFetch(n *atomic.Int32, body string) func() (*Response, error) {
+	return func() (*Response, error) {
+		n.Add(1)
+		return &Response{StatusCode: 200, Body: []byte(body)}, nil
+	}
 }
 
 // seedStale inserts a 200 entry that expired 1 minute ago into both primary

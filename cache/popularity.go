@@ -6,23 +6,21 @@ import (
 )
 
 type popularityTracker struct {
-	mu        sync.RWMutex
-	counts    map[string]*accessCounter
-	window    time.Duration
-	threshold int
-	closeCh   chan struct{}
+	mu      sync.RWMutex
+	counts  map[string]*accessCounter
+	window  time.Duration
+	closeCh chan struct{}
 }
 
 type accessCounter struct {
 	timestamps []int64
 }
 
-func newPopularityTracker(window time.Duration, threshold int) *popularityTracker {
+func newPopularityTracker(window time.Duration) *popularityTracker {
 	p := &popularityTracker{
-		counts:    make(map[string]*accessCounter),
-		window:    window,
-		threshold: threshold,
-		closeCh:   make(chan struct{}),
+		counts:  make(map[string]*accessCounter),
+		window:  window,
+		closeCh: make(chan struct{}),
 	}
 	go p.cleanupLoop()
 	return p
@@ -66,13 +64,16 @@ func (p *popularityTracker) Close() {
 	close(p.closeCh)
 }
 
-func (p *popularityTracker) Record(key string) int {
+// Record logs an access for key and trims expired timestamps. The maxCount
+// parameter caps retained timestamps to 2*maxCount (minimum 16) so per-endpoint
+// thresholds higher than the global default are still reachable.
+func (p *popularityTracker) Record(key string, maxCount int) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
 	now := time.Now().UnixNano()
 	cutoff := now - p.window.Nanoseconds()
-	maxTimestamps := max(p.threshold*2, 16)
+	maxTimestamps := max(maxCount*2, 16)
 
 	ac, ok := p.counts[key]
 	if !ok {
@@ -94,7 +95,6 @@ func (p *popularityTracker) Record(key string) int {
 	}
 
 	ac.timestamps = valid
-	return len(ac.timestamps)
 }
 
 func (p *popularityTracker) Count(key string) int {
@@ -114,14 +114,4 @@ func (p *popularityTracker) Count(key string) int {
 		}
 	}
 	return count
-}
-
-func (p *popularityTracker) IsPopular(key string) bool {
-	return p.Count(key) > p.threshold
-}
-
-func (p *popularityTracker) Len() int {
-	p.mu.RLock()
-	defer p.mu.RUnlock()
-	return len(p.counts)
 }

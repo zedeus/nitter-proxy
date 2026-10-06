@@ -10,22 +10,10 @@ import (
 )
 
 func TestFetch_CacheHit(t *testing.T) {
-	cfg := DefaultConfig()
-	cfg.RedisAddr = getTestRedisAddr(t)
-	cfg.RedisPrefix = fmt.Sprintf("test:%d:", time.Now().UnixNano())
-	cfg.PopularityThreshold = 0
+	c := testCache(t)
 
-	c, err := New(cfg)
-	if err != nil {
-		t.Fatalf("New() error = %v", err)
-	}
-	defer c.Close()
-
-	var fetchCount atomic.Int32
-	fetch := func() (*Response, error) {
-		fetchCount.Add(1)
-		return &Response{StatusCode: 200, Body: []byte(`{"test": "data"}`)}, nil
-	}
+	var n atomic.Int32
+	fetch := countingFetch(&n, `{"test": "data"}`)
 
 	// First fetch - miss
 	r1, err := c.Fetch("key1", "TestEndpoint", fetch)
@@ -50,22 +38,13 @@ func TestFetch_CacheHit(t *testing.T) {
 		t.Errorf("StatusCode = %d, want 200", r2.StatusCode)
 	}
 
-	if fetchCount.Load() != 1 {
-		t.Errorf("Fetch count = %d, want 1", fetchCount.Load())
+	if n.Load() != 1 {
+		t.Errorf("Fetch count = %d, want 1", n.Load())
 	}
 }
 
 func TestFetch_HeadersPassthrough(t *testing.T) {
-	cfg := DefaultConfig()
-	cfg.RedisAddr = getTestRedisAddr(t)
-	cfg.RedisPrefix = fmt.Sprintf("test:%d:", time.Now().UnixNano())
-	cfg.PopularityThreshold = 0
-
-	c, err := New(cfg)
-	if err != nil {
-		t.Fatalf("New() error = %v", err)
-	}
-	defer c.Close()
+	c := testCache(t)
 
 	fetch := func() (*Response, error) {
 		return &Response{
@@ -91,21 +70,11 @@ func TestFetch_HeadersPassthrough(t *testing.T) {
 }
 
 func TestFetch_Coalescing(t *testing.T) {
-	cfg := DefaultConfig()
-	cfg.RedisAddr = getTestRedisAddr(t)
-	cfg.RedisPrefix = fmt.Sprintf("test:%d:", time.Now().UnixNano())
-	cfg.PopularityThreshold = 0
-	cfg.Whitelist = []string{"TestEndpoint"}
+	c := testCache(t)
 
-	c, err := New(cfg)
-	if err != nil {
-		t.Fatalf("New() error = %v", err)
-	}
-	defer c.Close()
-
-	var fetchCount atomic.Int32
+	var n atomic.Int32
 	fetch := func() (*Response, error) {
-		fetchCount.Add(1)
+		n.Add(1)
 		time.Sleep(50 * time.Millisecond)
 		return &Response{StatusCode: 200, Body: []byte(`{}`)}, nil
 	}
@@ -121,35 +90,18 @@ func TestFetch_Coalescing(t *testing.T) {
 	close(start)
 	wg.Wait()
 
-	if count := fetchCount.Load(); count != 1 {
+	if count := n.Load(); count != 1 {
 		t.Errorf("Fetch count = %d, want 1", count)
 	}
 }
 
 func TestFetch_StaleIfError(t *testing.T) {
-	cfg := DefaultConfig()
-	cfg.RedisAddr = getTestRedisAddr(t)
-	cfg.RedisPrefix = fmt.Sprintf("test:%d:", time.Now().UnixNano())
-	cfg.PopularityThreshold = 0
-	cfg.EnableStaleIfError = true
-	cfg.StaleIfErrorWindow = 10 * time.Minute
-	cfg.Whitelist = []string{"TestEndpoint"}
+	c := testCache(t, func(cfg *Config) {
+		cfg.EnableStaleIfError = true
+		cfg.StaleIfErrorWindow = 10 * time.Minute
+	})
 
-	c, err := New(cfg)
-	if err != nil {
-		t.Fatalf("New() error = %v", err)
-	}
-	defer c.Close()
-
-	// Store an entry that will become stale
-	e := &entry{
-		Status:   200,
-		Body:     []byte(`{"original": true}`),
-		CachedAt: time.Now().Add(-6 * time.Minute).UnixNano(),
-		TTL:      5 * time.Minute,
-		Endpoint: "TestEndpoint",
-	}
-	c.set("stale-key", e)
+	seedStale(c, "stale-key")
 	time.Sleep(10 * time.Millisecond)
 
 	// Fetch with error - should serve stale
@@ -167,23 +119,11 @@ func TestFetch_StaleIfError(t *testing.T) {
 }
 
 func TestFetch_NegativeCaching(t *testing.T) {
-	cfg := DefaultConfig()
-	cfg.RedisAddr = getTestRedisAddr(t)
-	cfg.RedisPrefix = fmt.Sprintf("test:%d:", time.Now().UnixNano())
-	cfg.PopularityThreshold = 0
-	cfg.EnableNegativeCaching = true
-	cfg.NegativeCacheTTL = 2 * time.Minute
-	cfg.Whitelist = []string{"TestEndpoint"}
+	c := testCache(t)
 
-	c, err := New(cfg)
-	if err != nil {
-		t.Fatalf("New() error = %v", err)
-	}
-	defer c.Close()
-
-	var fetchCount atomic.Int32
+	var n atomic.Int32
 	fetch := func() (*Response, error) {
-		fetchCount.Add(1)
+		n.Add(1)
 		return &Response{StatusCode: http.StatusNotFound, Body: []byte(`{}`)}, nil
 	}
 
@@ -194,8 +134,8 @@ func TestFetch_NegativeCaching(t *testing.T) {
 	if result.StatusCode != http.StatusNotFound {
 		t.Errorf("StatusCode = %d, want 404", result.StatusCode)
 	}
-	if fetchCount.Load() != 1 {
-		t.Errorf("Fetch count = %d, want 1 (404 should be cached)", fetchCount.Load())
+	if n.Load() != 1 {
+		t.Errorf("Fetch count = %d, want 1 (404 should be cached)", n.Load())
 	}
 }
 
@@ -284,11 +224,8 @@ func TestPopularityThreshold_DefaultRejectsFirstRequest(t *testing.T) {
 		cfg.PopularityThreshold = 1
 	})
 
-	var fetchCount atomic.Int32
-	fetch := func() (*Response, error) {
-		fetchCount.Add(1)
-		return &Response{StatusCode: 200, Body: []byte(`{"data": true}`)}, nil
-	}
+	var n atomic.Int32
+	fetch := countingFetch(&n, `{"data": true}`)
 
 	// 1st request: miss, not yet popular enough to cache
 	r1, err := c.Fetch("pop-key", "TestEndpoint", fetch)
@@ -321,21 +258,16 @@ func TestPopularityThreshold_DefaultRejectsFirstRequest(t *testing.T) {
 		t.Errorf("3rd request: source = %s, want cache", r3.Source)
 	}
 
-	if fetchCount.Load() != 2 {
-		t.Errorf("fetch count = %d, want 2", fetchCount.Load())
+	if n.Load() != 2 {
+		t.Errorf("fetch count = %d, want 2", n.Load())
 	}
 }
 
 func TestPopularityThreshold_ZeroCachesImmediately(t *testing.T) {
-	c := testCache(t, func(cfg *Config) {
-		cfg.PopularityThreshold = 0
-	})
+	c := testCache(t)
 
-	var fetchCount atomic.Int32
-	fetch := func() (*Response, error) {
-		fetchCount.Add(1)
-		return &Response{StatusCode: 200, Body: []byte(`{"data": true}`)}, nil
-	}
+	var n atomic.Int32
+	fetch := countingFetch(&n, `{"data": true}`)
 
 	r1, _ := c.Fetch("imm-key", "TestEndpoint", fetch)
 	if r1.Source != "upstream" {
@@ -349,8 +281,8 @@ func TestPopularityThreshold_ZeroCachesImmediately(t *testing.T) {
 		t.Errorf("2nd request: source = %s, want cache", r2.Source)
 	}
 
-	if fetchCount.Load() != 1 {
-		t.Errorf("fetch count = %d, want 1", fetchCount.Load())
+	if n.Load() != 1 {
+		t.Errorf("fetch count = %d, want 1", n.Load())
 	}
 }
 
@@ -358,16 +290,12 @@ func TestPopularityThreshold_EndpointOverride(t *testing.T) {
 	// Global threshold=0 (cache immediately), but SearchTimeline=3
 	// means SearchTimeline needs 3 previous accesses before caching.
 	c := testCache(t, func(cfg *Config) {
-		cfg.PopularityThreshold = 0
 		cfg.EndpointThresholds = map[string]int{"SearchTimeline": 3}
 		cfg.Whitelist = []string{"TestEndpoint", "SearchTimeline"}
 	})
 
-	var fetchCount atomic.Int32
-	fetch := func() (*Response, error) {
-		fetchCount.Add(1)
-		return &Response{StatusCode: 200, Body: []byte(`{}`)}, nil
-	}
+	var n atomic.Int32
+	fetch := countingFetch(&n, `{}`)
 
 	// Requests 1-3: all rejected for SearchTimeline
 	for i := 1; i <= 3; i++ {
@@ -392,8 +320,8 @@ func TestPopularityThreshold_EndpointOverride(t *testing.T) {
 		t.Errorf("request 5: source = %s, want cache", r5.Source)
 	}
 
-	if fetchCount.Load() != 4 {
-		t.Errorf("fetch count = %d, want 4", fetchCount.Load())
+	if n.Load() != 4 {
+		t.Errorf("fetch count = %d, want 4", n.Load())
 	}
 }
 
@@ -402,9 +330,7 @@ func TestPopularityThreshold_AdmissionMetrics(t *testing.T) {
 		cfg.PopularityThreshold = 1
 	})
 
-	fetch := func() (*Response, error) {
-		return &Response{StatusCode: 200, Body: []byte(`{}`)}, nil
-	}
+	fetch := countingFetch(&atomic.Int32{}, `{}`)
 
 	// 1st request: should be rejected
 	c.Fetch("metrics-key", "TestEndpoint", fetch)
@@ -427,16 +353,78 @@ func TestPopularityThreshold_AdmissionMetrics(t *testing.T) {
 	}
 }
 
-func TestWhitelist(t *testing.T) {
-	cfg := DefaultConfig()
-	cfg.RedisAddr = getTestRedisAddr(t)
-	cfg.Whitelist = []string{"UserByScreenName", "TweetDetail"}
+func TestPopularityThreshold_EndpointOverrideZero(t *testing.T) {
+	// Global threshold=2 but endpoint override=0 should cache immediately.
+	c := testCache(t, func(cfg *Config) {
+		cfg.PopularityThreshold = 2
+		cfg.EndpointThresholds = map[string]int{"FastEndpoint": 0}
+		cfg.Whitelist = []string{"TestEndpoint", "FastEndpoint"}
+	})
 
-	c, err := New(cfg)
-	if err != nil {
-		t.Fatalf("New() error = %v", err)
+	var n atomic.Int32
+	fetch := countingFetch(&n, `{}`)
+
+	r1, _ := c.Fetch("fast-key", "FastEndpoint", fetch)
+	if r1.Source != "upstream" {
+		t.Errorf("1st request: source = %s, want upstream", r1.Source)
 	}
-	defer c.Close()
+
+	time.Sleep(10 * time.Millisecond)
+
+	r2, _ := c.Fetch("fast-key", "FastEndpoint", fetch)
+	if r2.Source != "cache" {
+		t.Errorf("2nd request: source = %s, want cache (endpoint override=0)", r2.Source)
+	}
+
+	if n.Load() != 1 {
+		t.Errorf("fetch count = %d, want 1", n.Load())
+	}
+}
+
+func TestPopularityThreshold_HighEndpointThreshold(t *testing.T) {
+	// Global threshold=0, endpoint threshold=20. Tests that the
+	// maxTimestamps cap in Record() is large enough to reach high
+	// per-endpoint thresholds.
+	c := testCache(t, func(cfg *Config) {
+		cfg.EndpointThresholds = map[string]int{"HighEndpoint": 20}
+		cfg.Whitelist = []string{"TestEndpoint", "HighEndpoint"}
+	})
+
+	var n atomic.Int32
+	fetch := countingFetch(&n, `{}`)
+
+	// Requests 1-20: all rejected
+	for i := 1; i <= 20; i++ {
+		r, _ := c.Fetch("high-key", "HighEndpoint", fetch)
+		if r.Source != "upstream" {
+			t.Errorf("request %d: source = %s, want upstream", i, r.Source)
+		}
+		time.Sleep(5 * time.Millisecond)
+	}
+
+	// Request 21: upstream, but this one gets cached
+	r21, _ := c.Fetch("high-key", "HighEndpoint", fetch)
+	if r21.Source != "upstream" {
+		t.Errorf("request 21: source = %s, want upstream", r21.Source)
+	}
+
+	time.Sleep(10 * time.Millisecond)
+
+	// Request 22: cache hit
+	r22, _ := c.Fetch("high-key", "HighEndpoint", fetch)
+	if r22.Source != "cache" {
+		t.Errorf("request 22: source = %s, want cache", r22.Source)
+	}
+
+	if n.Load() != 21 {
+		t.Errorf("fetch count = %d, want 21", n.Load())
+	}
+}
+
+func TestWhitelist(t *testing.T) {
+	c := testCache(t, func(cfg *Config) {
+		cfg.Whitelist = []string{"UserByScreenName", "TweetDetail"}
+	})
 
 	if !c.IsCacheable("UserByScreenName") {
 		t.Error("IsCacheable(UserByScreenName) = false, want true")

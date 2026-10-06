@@ -166,7 +166,7 @@ func New(cfg Config) (*Cache, error) {
 
 	var pop *popularityTracker
 	if cfg.Enabled {
-		pop = newPopularityTracker(cfg.PopularityWindow, cfg.PopularityThreshold)
+		pop = newPopularityTracker(cfg.PopularityWindow)
 	}
 
 	c := &Cache{
@@ -295,12 +295,14 @@ func (c *Cache) Fetch(key, endpoint string, fetch func() (*Response, error)) (*R
 		return &Result{e.Status, e.Body, "cache", nil}, nil
 	}
 	c.metrics.Misses.Add(1)
-	c.popularity.Record(key)
+	threshold := c.ThresholdFor(endpoint)
+	c.popularity.Record(key, threshold)
 	c.metrics.RecordEndpointMiss(endpoint)
 
 	v, err, shared := c.sfg.Do(key, func() (any, error) {
 		if e, ok := c.get(key); ok && !e.isStale() {
 			c.metrics.Hits.Add(1)
+			c.metrics.UpstreamAvoided.Add(1)
 			c.metrics.RecordEndpointHit(e.Endpoint)
 			c.metrics.BytesServed.Add(uint64(len(e.Body)))
 			return &Result{e.Status, e.Body, "cache", nil}, nil
@@ -341,7 +343,6 @@ func (c *Cache) Fetch(key, endpoint string, fetch func() (*Response, error)) (*R
 			Endpoint: endpoint,
 		}
 
-		threshold := c.ThresholdFor(endpoint)
 		if threshold == 0 || c.popularity.Count(key) > threshold {
 			c.set(key, e)
 			c.metrics.AdmissionAccepted.Add(1)
