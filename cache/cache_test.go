@@ -1,6 +1,7 @@
 package cache
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"sync"
@@ -106,7 +107,7 @@ func TestFetch_StaleIfError(t *testing.T) {
 
 	// Fetch with error - should serve stale
 	fetch := func() (*Response, error) {
-		return nil, fmt.Errorf("upstream error")
+		return nil, errors.New("upstream error")
 	}
 
 	result, err := c.Fetch("stale-key", "TestEndpoint", fetch)

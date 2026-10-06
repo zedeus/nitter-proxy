@@ -2,6 +2,7 @@ package cache
 
 import (
 	"context"
+	"fmt"
 	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
@@ -358,7 +359,11 @@ func (c *Cache) Fetch(key, endpoint string, fetch func() (*Response, error)) (*R
 	if shared {
 		c.metrics.CoalescedCount.Add(1)
 	}
-	return v.(*Result), nil
+	result, ok := v.(*Result)
+	if !ok {
+		return nil, fmt.Errorf("unexpected type from singleflight: %T", v)
+	}
+	return result, nil
 }
 
 func (c *Cache) Metrics() *Metrics {
