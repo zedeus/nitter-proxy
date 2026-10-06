@@ -199,6 +199,82 @@ func TestFetch_NegativeCaching(t *testing.T) {
 	}
 }
 
+func TestFetch_ErrorNotCached(t *testing.T) {
+	c := testCache(t)
+
+	for _, code := range []int{401, 403, 429, 500, 502, 503} {
+		t.Run(fmt.Sprintf("status_%d", code), func(t *testing.T) {
+			var n atomic.Int32
+			fetch := func() (*Response, error) {
+				n.Add(1)
+				return &Response{StatusCode: code, Body: []byte(`{"error": true}`)}, nil
+			}
+
+			key := fmt.Sprintf("err-%d", code)
+			c.Fetch(key, "TestEndpoint", fetch)
+			time.Sleep(10 * time.Millisecond)
+
+			r, _ := c.Fetch(key, "TestEndpoint", fetch)
+			if r.Source == "cache" {
+				t.Errorf("error %d should not be cached", code)
+			}
+			if n.Load() != 2 {
+				t.Errorf("fetch count = %d, want 2", n.Load())
+			}
+		})
+	}
+}
+
+func TestFetch_ErrorServesStale(t *testing.T) {
+	for _, code := range []int{429, 403} {
+		t.Run(fmt.Sprintf("status_%d", code), func(t *testing.T) {
+			c := testCache(t, func(cfg *Config) {
+				cfg.EnableStaleIfError = true
+				cfg.StaleIfErrorWindow = 10 * time.Minute
+			})
+
+			key := fmt.Sprintf("stale-%d", code)
+			seedStale(c, key)
+			time.Sleep(10 * time.Millisecond)
+
+			fetch := func() (*Response, error) {
+				return &Response{StatusCode: code, Body: []byte(`{"error": true}`)}, nil
+			}
+
+			result, err := c.Fetch(key, "TestEndpoint", fetch)
+			if err != nil {
+				t.Fatalf("should have served stale, got error: %v", err)
+			}
+			if result.Source != "stale" {
+				t.Errorf("source = %s, want stale", result.Source)
+			}
+			if result.StatusCode != 200 {
+				t.Errorf("status = %d, want 200", result.StatusCode)
+			}
+		})
+	}
+}
+
+func TestFetch_ErrorPassthroughWithoutStale(t *testing.T) {
+	c := testCache(t, func(cfg *Config) { cfg.EnableStaleIfError = false })
+
+	for _, code := range []int{401, 403, 429, 500} {
+		t.Run(fmt.Sprintf("status_%d", code), func(t *testing.T) {
+			fetch := func() (*Response, error) {
+				return &Response{StatusCode: code, Body: []byte(`{"error": true}`)}, nil
+			}
+
+			result, _ := c.Fetch(fmt.Sprintf("no-stale-%d", code), "TestEndpoint", fetch)
+			if result.StatusCode != code {
+				t.Errorf("status = %d, want %d", result.StatusCode, code)
+			}
+			if result.Source != "upstream" {
+				t.Errorf("source = %s, want upstream", result.Source)
+			}
+		})
+	}
+}
+
 func TestWhitelist(t *testing.T) {
 	cfg := DefaultConfig()
 	cfg.RedisAddr = getTestRedisAddr(t)

@@ -31,6 +31,7 @@ func (s *Server) metricsHandler(w http.ResponseWriter, req *http.Request) {
 	writeMetric(&b, "nitter_proxy_request_coalesced_total", "Requests coalesced via singleflight", m.CoalescedCount.Load())
 	writeMetric(&b, "nitter_proxy_stale_served_total", "Stale responses served", m.StaleServed.Load())
 	writeMetric(&b, "nitter_proxy_negative_cached_total", "Negative (404) responses cached", m.NegativeCached.Load())
+	writeMetric(&b, "nitter_proxy_errors_not_cached_total", "Upstream errors (401/403/429/5xx) not cached", m.ErrorsNotCached.Load())
 	writeMetric(&b, "nitter_proxy_admission_accepted_total", "Items cached after crossing popularity threshold", m.AdmissionAccepted.Load())
 	writeMetric(&b, "nitter_proxy_admission_rejected_total", "Items not cached due to low popularity", m.AdmissionRejected.Load())
 

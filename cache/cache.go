@@ -258,6 +258,25 @@ func (c *Cache) set(key string, e *entry) {
 	}
 }
 
+// tryServeStale returns a stale cached response if one exists within the
+// stale-if-error window. Returns nil if stale serving is disabled, no stale
+// entry exists, or the entry is too old.
+func (c *Cache) tryServeStale(key string) *Result {
+	if !c.cfg.EnableStaleIfError {
+		return nil
+	}
+	e, ok := c.getStale(key)
+	if !ok {
+		return nil
+	}
+	age := time.Duration(time.Now().UnixNano()-e.CachedAt) - e.TTL
+	if age >= c.cfg.StaleIfErrorWindow {
+		return nil
+	}
+	c.metrics.StaleServed.Add(1)
+	return &Result{e.Status, e.Body, "stale", nil}
+}
+
 func (c *Cache) Fetch(key, endpoint string, fetch func() (*Response, error)) (*Result, error) {
 	if !c.IsCacheable(endpoint) {
 		c.metrics.UpstreamRequests.Add(1)
@@ -290,16 +309,23 @@ func (c *Cache) Fetch(key, endpoint string, fetch func() (*Response, error)) (*R
 		c.metrics.UpstreamRequests.Add(1)
 		r, err := fetch()
 		if err != nil {
-			if c.cfg.EnableStaleIfError {
-				if e, ok := c.getStale(key); ok {
-					age := time.Duration(time.Now().UnixNano()-e.CachedAt) - e.TTL
-					if age < c.cfg.StaleIfErrorWindow {
-						c.metrics.StaleServed.Add(1)
-						return &Result{e.Status, e.Body, "stale", nil}, nil
-					}
-				}
+			if stale := c.tryServeStale(key); stale != nil {
+				return stale, nil
 			}
 			return nil, err
+		}
+
+		// Upstream errors: never cache, serve stale if available.
+		// - 429/5xx: transient infrastructure errors
+		// - 401/403: session-specific auth errors (cache key is content-based,
+		//   so caching would cross-contaminate other sessions)
+		if r.StatusCode == http.StatusTooManyRequests || r.StatusCode >= 500 ||
+			r.StatusCode == http.StatusUnauthorized || r.StatusCode == http.StatusForbidden {
+			c.metrics.ErrorsNotCached.Add(1)
+			if stale := c.tryServeStale(key); stale != nil {
+				return stale, nil
+			}
+			return &Result{r.StatusCode, r.Body, "upstream", r.Headers}, nil
 		}
 
 		ttl := c.TTLFor(endpoint)

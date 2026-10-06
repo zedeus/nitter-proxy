@@ -14,6 +14,7 @@ type Metrics struct {
 	CoalescedCount    atomic.Uint64
 	StaleServed       atomic.Uint64
 	NegativeCached    atomic.Uint64
+	ErrorsNotCached   atomic.Uint64
 	AdmissionRejected atomic.Uint64
 	AdmissionAccepted atomic.Uint64
 	EndpointHits      sync.Map
@@ -55,6 +56,7 @@ func (m *Metrics) Snapshot() map[string]any {
 		"coalesced_count":    m.CoalescedCount.Load(),
 		"stale_served":       m.StaleServed.Load(),
 		"negative_cached":    m.NegativeCached.Load(),
+		"errors_not_cached":  m.ErrorsNotCached.Load(),
 		"admission_rejected": m.AdmissionRejected.Load(),
 		"admission_accepted": m.AdmissionAccepted.Load(),
 		"hit_rate":           m.HitRate(),

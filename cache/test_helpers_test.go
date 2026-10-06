@@ -2,12 +2,45 @@ package cache
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"testing"
 	"time"
 
 	"github.com/redis/go-redis/v9"
 )
+
+// testCache creates a Cache with sensible test defaults (popularity=0,
+// whitelist=TestEndpoint). Pass option funcs to tweak the config further.
+func testCache(t *testing.T, opts ...func(*Config)) *Cache {
+	t.Helper()
+	cfg := DefaultConfig()
+	cfg.RedisAddr = getTestRedisAddr(t)
+	cfg.RedisPrefix = fmt.Sprintf("test:%d:", time.Now().UnixNano())
+	cfg.PopularityThreshold = 0
+	cfg.Whitelist = []string{"TestEndpoint"}
+	for _, fn := range opts {
+		fn(&cfg)
+	}
+	c, err := New(cfg)
+	if err != nil {
+		t.Fatalf("New() error = %v", err)
+	}
+	t.Cleanup(c.Close)
+	return c
+}
+
+// seedStale inserts a 200 entry that expired 1 minute ago into both primary
+// and stale slots.
+func seedStale(c *Cache, key string) {
+	c.set(key, &entry{
+		Status:   200,
+		Body:     []byte(`{"good": true}`),
+		CachedAt: time.Now().Add(-6 * time.Minute).UnixNano(),
+		TTL:      5 * time.Minute,
+		Endpoint: "TestEndpoint",
+	})
+}
 
 func getTestRedisAddr(t *testing.T) string {
 	addr := os.Getenv("REDIS_ADDR")
