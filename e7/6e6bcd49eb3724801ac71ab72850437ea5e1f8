@@ -1,0 +1,70 @@
+go.mod
+  s_c18c040dc5ce1d::t_696e3aafbc738e 7
+go.sum
+  s_c18c040dc5ce1d::t_d0fe823ca5d86c 15-16
+cache/cache.go
+  s_c18c040dc5ce1d::t_b0c99098b9442b 350,360
+  s_c18c040dc5ce1d::t_a46c2afa2e8419 314
+  s_aef4ac03582553::t_7d8223633c8e49 301,315
+  s_c18c040dc5ce1d::t_7fc914d242ef2b 328-330
+  s_c18c040dc5ce1d::t_3ed69088964245 8
+  s_c18c040dc5ce1d::t_562017958384fa 122-123
+  s_c18c040dc5ce1d::t_2c479cf3a11850 323
+  s_c18c040dc5ce1d::t_7cec728d283173 292
+  s_c18c040dc5ce1d::t_97169d6c1be929 347-349,351-353,355,359,361-363
+  s_c18c040dc5ce1d::t_d15deb3d74b996 354,356-358
+  s_c18c040dc5ce1d::t_428cf14aac8e25 152-156,159
+  s_c18c040dc5ce1d::t_70951e23970491 64
+  s_c18c040dc5ce1d::t_c766cc75cbcf0c 300
+cache/metrics.go
+  s_c18c040dc5ce1d::t_664a87dc704a5a 195-196
+  s_c18c040dc5ce1d::t_a28af90f68348d 11-18
+  s_c18c040dc5ce1d::t_dd2933a7f08e1f 33-34
+  s_c18c040dc5ce1d::t_9a7ccb95917d64 40-48
+  s_c18c040dc5ce1d::t_d8e212d18c0bf5 55-56,58-67,107-111,115-127,129-142,146
+  s_c18c040dc5ce1d::t_440d4f73749d0b 143-145
+  s_c18c040dc5ce1d::t_bdedce2551c4ca 68-71,73,75,82,84-92,98
+  s_c18c040dc5ce1d::t_19fff6d7f4aba1 8
+  s_c18c040dc5ce1d::t_ddecf68b97e97e 4
+  s_c18c040dc5ce1d::t_34025cad993116 39
+  s_c18c040dc5ce1d::t_6a122f1100b0e9 28
+  s_c18c040dc5ce1d::t_dc861a68c4f013 99-100,102,104-106,112-114,128
+  s_c18c040dc5ce1d::t_fd414335d16219 5,32,149-151,153,155
+  s_c18c040dc5ce1d::t_d8774bab5e7f5e 52-54
+  s_c18c040dc5ce1d::t_8e7de1a33e7a8d 51,57,147-148
+  s_c18c040dc5ce1d::t_2e270c2223436a 37-38
+  s_c18c040dc5ce1d::t_2d32222ec6b2fc 177-179
+  s_c18c040dc5ce1d::t_6f015cc5bfb9ba 190
+  s_c18c040dc5ce1d::t_54d352d752edc2 78-81,83,93-97
+  s_c18c040dc5ce1d::t_276dff5e799fd5 176,180,194,198
+  s_c18c040dc5ce1d::t_a3af373312deaf 152,154,159,163
+  s_c18c040dc5ce1d::t_bb9d6582940332 156-158,160-162
+cache/cache_test.go
+  s_c18c040dc5ce1d::t_813bff1aa1e451 123-126,146-181,185-188,197,209,212-214,216-218,243-244,248-249
+  s_c18c040dc5ce1d::t_7450063a30d9a2 182-184,189-196,198-208,210-211,215,219-242,245-247
+  s_c18c040dc5ce1d::t_64e2db1291dbb8 250
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e76e6bcd49eb3724801ac71ab72850437ea5e1f8",
+  "prompts": {},
+  "sessions": {
+    "s_aef4ac03582553": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ac4d414a-c4bc-4f70-b350-806d490a7e23",
+        "model": "metr-model"
+      },
+      "human_author": null
+    },
+    "s_c18c040dc5ce1d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d4db1898-c4da-4f5b-9bab-0593423bc21f",
+        "model": "metr-model"
+      },
+      "human_author": "Zed <zedeus@pm.me>"
+    }
+  }
+}
