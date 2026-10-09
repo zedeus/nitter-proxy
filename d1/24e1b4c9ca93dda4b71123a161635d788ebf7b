@@ -1,0 +1,21 @@
+.gitignore
+  s_c18c040dc5ce1d::t_02d2dad53b1458 22,24
+package-lock.json
+  s_c18c040dc5ce1d::t_b023c81cee852c 1-235
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d124e1b4c9ca93dda4b71123a161635d788ebf7b",
+  "prompts": {},
+  "sessions": {
+    "s_c18c040dc5ce1d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d4db1898-c4da-4f5b-9bab-0593423bc21f",
+        "model": "metr-model"
+      },
+      "human_author": "Zed <zedeus@pm.me>"
+    }
+  }
+}
