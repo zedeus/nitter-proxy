@@ -1,0 +1,61 @@
+nitter-proxy.conf.example
+  s_c18c040dc5ce1d::t_310ab005d8869f 22-25,27-28
+config.go
+  s_c18c040dc5ce1d::t_232ddb4dbd3296 12-19
+metrics.go
+  s_c18c040dc5ce1d::t_7a8d876600ecdf 8-9
+  s_c18c040dc5ce1d::t_0ad6e630d289cd 65-68,70-71
+  s_c18c040dc5ce1d::t_caa3b2d4eee126 31
+  s_c18c040dc5ce1d::t_1fc58c92cbb2aa 39
+  s_c18c040dc5ce1d::t_7f7194e5eda454 58-61
+  s_c18c040dc5ce1d::t_58fb450da52624 35
+  s_c18c040dc5ce1d::t_f3f4b38ac509ea 48-50,55-57,62-64,69,72,74-75
+api.go
+  s_c18c040dc5ce1d::t_f22cddcc99ab04 247,250
+  s_aef4ac03582553::t_22808839dd8a42 135-142,253
+  s_c18c040dc5ce1d::t_7fb69c10ba5d19 211,216,245-246,254
+  s_c18c040dc5ce1d::t_5759a79f698996 143-144
+  s_aef4ac03582553::t_71763c2b17cba9 168
+  s_c18c040dc5ce1d::t_7ad19a0e291c93 251
+  s_c18c040dc5ce1d::t_bb9d6582940332 224
+  s_c18c040dc5ce1d::t_cbd83f456138d5 121-133
+  s_c18c040dc5ce1d::t_5ea9778d501e62 222-223
+  s_c18c040dc5ce1d::t_8faf66d243ae36 18
+  s_c18c040dc5ce1d::t_52261a0f1788b2 248
+  s_c18c040dc5ce1d::t_6bded5ca2f0e4f 238-240,249,252
+  s_c18c040dc5ce1d::t_57f8037a51b180 212-215
+main.go
+  s_aef4ac03582553::t_2dcb74269464f8 82-84,90-100
+  s_aef4ac03582553::t_0d1944fb50465d 18
+  s_c18c040dc5ce1d::t_4f3da071f52ea4 101-108
+  s_c18c040dc5ce1d::t_dba05583b4888e 85-89
+  s_c18c040dc5ce1d::t_779c5be9d79866 74,80-81
+  s_c18c040dc5ce1d::t_916c24e8d3c581 75-79
+  s_c18c040dc5ce1d::t_57ba38e65a5922 14
+  s_c18c040dc5ce1d::t_3e75c4ace73612 23
+  s_c18c040dc5ce1d::t_380c66d0a43640 109
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "3d340462fd2491269f6dc7bf99893356f3881077",
+  "prompts": {},
+  "sessions": {
+    "s_aef4ac03582553": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ac4d414a-c4bc-4f70-b350-806d490a7e23",
+        "model": "metr-model"
+      },
+      "human_author": null
+    },
+    "s_c18c040dc5ce1d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d4db1898-c4da-4f5b-9bab-0593423bc21f",
+        "model": "metr-model"
+      },
+      "human_author": "Zed <zedeus@pm.me>"
+    }
+  }
+}
