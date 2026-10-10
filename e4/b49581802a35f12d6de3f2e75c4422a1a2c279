@@ -1,0 +1,63 @@
+cache/metrics.go
+  s_c18c040dc5ce1d::t_664a87dc704a5a 194-195
+  s_c18c040dc5ce1d::t_6a122f1100b0e9 28
+  s_c18c040dc5ce1d::t_fd414335d16219 5,32,148-150,152,154
+  s_c18c040dc5ce1d::t_6f015cc5bfb9ba 189
+  s_c18c040dc5ce1d::t_19fff6d7f4aba1 8
+  s_c18c040dc5ce1d::t_276dff5e799fd5 175,179,193,197
+  s_c18c040dc5ce1d::t_bb9d6582940332 155-157,159-161
+  s_c18c040dc5ce1d::t_2d32222ec6b2fc 176-178
+  s_c18c040dc5ce1d::t_bdedce2551c4ca 67-70,72,74,81,83-91,97
+  s_c18c040dc5ce1d::t_2e270c2223436a 37-38
+  s_c18c040dc5ce1d::t_a3af373312deaf 151,153,158,162
+  s_c18c040dc5ce1d::t_d8e212d18c0bf5 55-56,58-66,106-110,114-126,128-141,145
+  s_c18c040dc5ce1d::t_8e7de1a33e7a8d 51,57,146-147
+  s_c18c040dc5ce1d::t_34025cad993116 39
+  s_c18c040dc5ce1d::t_440d4f73749d0b 142-144
+  s_c18c040dc5ce1d::t_dc861a68c4f013 98-99,101,103-105,111-113,127
+  s_c18c040dc5ce1d::t_a28af90f68348d 11-18
+  s_c18c040dc5ce1d::t_54d352d752edc2 77-80,82,92-96
+  s_c18c040dc5ce1d::t_d8774bab5e7f5e 52-54
+  s_c18c040dc5ce1d::t_dd2933a7f08e1f 33-34
+  s_c18c040dc5ce1d::t_9a7ccb95917d64 40-48
+  s_c18c040dc5ce1d::t_ddecf68b97e97e 4
+cache/cache.go
+  s_c18c040dc5ce1d::t_b0c99098b9442b 345,354
+  s_c18c040dc5ce1d::t_a46c2afa2e8419 313
+  s_c18c040dc5ce1d::t_2c479cf3a11850 321
+  s_c18c040dc5ce1d::t_7cec728d283173 292
+  s_c18c040dc5ce1d::t_70951e23970491 64
+  s_c18c040dc5ce1d::t_97169d6c1be929 344,346-347,349,353,355-356
+  s_c18c040dc5ce1d::t_d15deb3d74b996 350-352
+  s_c18c040dc5ce1d::t_7fc914d242ef2b 326
+  s_c18c040dc5ce1d::t_562017958384fa 122-123
+  s_c18c040dc5ce1d::t_c766cc75cbcf0c 300
+  s_c18c040dc5ce1d::t_7eecf859388c42 343
+  s_c18c040dc5ce1d::t_428cf14aac8e25 152-156,159
+  s_c18c040dc5ce1d::t_3ed69088964245 8
+  s_c18c040dc5ce1d::t_1728e32b1b4238 348
+cache/cache_test.go
+  s_c18c040dc5ce1d::t_64e2db1291dbb8 250
+  s_c18c040dc5ce1d::t_813bff1aa1e451 123-126,146-181,185-188,197,209,212-214,216-218,243-244,248-249
+  s_c18c040dc5ce1d::t_7450063a30d9a2 182-184,189-196,198-208,210-211,215,219-242,245-247
+go.mod
+  s_c18c040dc5ce1d::t_696e3aafbc738e 7
+go.sum
+  s_c18c040dc5ce1d::t_d0fe823ca5d86c 15-16
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e4b49581802a35f12d6de3f2e75c4422a1a2c279",
+  "prompts": {},
+  "sessions": {
+    "s_c18c040dc5ce1d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d4db1898-c4da-4f5b-9bab-0593423bc21f",
+        "model": "metr-model"
+      },
+      "human_author": "Zed <zedeus@pm.me>"
+    }
+  }
+}
