@@ -170,7 +170,7 @@ func New(metrics *cache.Metrics, cfg cache.Config) *Dashboard {
 		clients:   make(map[*wsClient]struct{}),
 		reqBuf:    make([]RequestRecord, reqBufSize),
 		upgrader: websocket.Upgrader{
-			CheckOrigin: func(r *http.Request) bool { return true },
+			CheckOrigin: func(_ *http.Request) bool { return true },
 		},
 		done: make(chan struct{}),
 	}
@@ -196,7 +196,7 @@ func (d *Dashboard) Close() {
 	close(d.done)
 	d.mu.Lock()
 	for c := range d.clients {
-		c.conn.Close()
+		_ = c.conn.Close()
 	}
 	d.mu.Unlock()
 }
@@ -240,7 +240,7 @@ func (d *Dashboard) broadcast(clients []*wsClient, msg any) {
 			d.mu.Lock()
 			delete(d.clients, c)
 			d.mu.Unlock()
-			c.conn.Close()
+			_ = c.conn.Close()
 		}
 	}
 }
@@ -340,7 +340,7 @@ func (d *Dashboard) record() {
 }
 
 // ServeIndex serves the embedded dashboard HTML page.
-func (d *Dashboard) ServeIndex(w http.ResponseWriter, _ *http.Request) {
+func (*Dashboard) ServeIndex(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Header().Set("Cache-Control", "no-store")
 	_, _ = w.Write(indexHTML)
@@ -376,7 +376,7 @@ func (d *Dashboard) ServeWebSocket(w http.ResponseWriter, r *http.Request) {
 	}{"init", history, d.startedAt.UnixMilli(), d.cacheInfo, recent}
 
 	if err := client.writeJSON(init); err != nil {
-		conn.Close()
+		_ = conn.Close()
 		return
 	}
 
@@ -390,7 +390,7 @@ func (d *Dashboard) ServeWebSocket(w http.ResponseWriter, r *http.Request) {
 		d.mu.Lock()
 		delete(d.clients, client)
 		d.mu.Unlock()
-		conn.Close()
+		_ = conn.Close()
 		slog.Info("[DASHBOARD] Client disconnected", "addr", r.RemoteAddr)
 	}()
 

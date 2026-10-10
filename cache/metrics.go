@@ -100,7 +100,11 @@ func (m *Metrics) getEndpointStat(endpoint string) *EndpointStat {
 	if !ok {
 		v, _ = m.EndpointStats.LoadOrStore(endpoint, &EndpointStat{})
 	}
-	return v.(*EndpointStat)
+	s, ok := v.(*EndpointStat)
+	if !ok {
+		return &EndpointStat{}
+	}
+	return s
 }
 
 // RecordEndpointLatency tracks per-endpoint latency (upstream only).
