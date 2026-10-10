@@ -1,0 +1,25 @@
+biome.json
+  s_c18c040dc5ce1d::t_0aef37814128f7 1-34
+package.json
+  s_c18c040dc5ce1d::t_98775d93f6beaf 1-10
+package-lock.json
+  s_c18c040dc5ce1d::t_0830108b343a7d 1-187
+.gitignore
+  s_c18c040dc5ce1d::t_ae2509cc08be21 22,24
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a99470a108510b2fb92c06446aca02fe01e493d6",
+  "prompts": {},
+  "sessions": {
+    "s_c18c040dc5ce1d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d4db1898-c4da-4f5b-9bab-0593423bc21f",
+        "model": "metr-model"
+      },
+      "human_author": "Zed <zedeus@pm.me>"
+    }
+  }
+}
