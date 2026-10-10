@@ -1,0 +1,25 @@
+package.json
+  s_c18c040dc5ce1d::t_98775d93f6beaf 1-10
+.gitignore
+  s_c18c040dc5ce1d::t_ae2509cc08be21 22,24
+biome.json
+  s_c18c040dc5ce1d::t_0aef37814128f7 1-34
+package-lock.json
+  s_c18c040dc5ce1d::t_0830108b343a7d 1-187
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "090a9908be94d9b89d8c2c3e781d79f34daad1e1",
+  "prompts": {},
+  "sessions": {
+    "s_c18c040dc5ce1d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d4db1898-c4da-4f5b-9bab-0593423bc21f",
+        "model": "metr-model"
+      },
+      "human_author": null
+    }
+  }
+}
