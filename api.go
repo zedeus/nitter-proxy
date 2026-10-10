@@ -15,6 +15,7 @@ import (
 
 	"github.com/sardanioss/httpcloak"
 	"github.com/zedeus/nitter-proxy/cache"
+	"github.com/zedeus/nitter-proxy/dashboard"
 )
 
 var logColor = func() bool {
@@ -117,7 +118,30 @@ func cloakHeaders(h http.Header, targetHost string) map[string][]string {
 	return headers
 }
 
+func (s *Server) pushRequest(endpoint string, status int, source string, dur time.Duration) {
+	if s.dash == nil {
+		return
+	}
+	s.dash.PushRequest(dashboard.RequestRecord{
+		Timestamp:  time.Now().UnixMilli(),
+		Endpoint:   endpoint,
+		StatusCode: status,
+		Source:     source,
+		LatencyUs:  dur.Microseconds(),
+	})
+}
+
 func (s *Server) apiProxyHandler(w http.ResponseWriter, req *http.Request) {
+	s.mu.RLock()
+	session := s.session
+	s.mu.RUnlock()
+	if session == nil {
+		http.Error(w, "Proxy initializing", http.StatusServiceUnavailable)
+		return
+	}
+
+	reqStart := time.Now()
+
 	path, err := url.PathUnescape(req.PathValue("url"))
 	if err != nil {
 		slog.Error("[API] Invalid URL", "error", err)
@@ -141,7 +165,7 @@ func (s *Server) apiProxyHandler(w http.ResponseWriter, req *http.Request) {
 
 	fetch := func() (*cache.Response, error) {
 		start := time.Now()
-		resp, err := s.session.Do(ctx, &httpcloak.Request{
+		resp, err := session.Do(ctx, &httpcloak.Request{
 			Method:  http.MethodGet,
 			URL:     targetURL,
 			Headers: reqHeaders,
@@ -184,6 +208,12 @@ func (s *Server) apiProxyHandler(w http.ResponseWriter, req *http.Request) {
 
 	result, err := s.cache.Fetch(cacheKey, endpoint, fetch)
 	if err != nil {
+		dur := time.Since(reqStart)
+		m := s.cache.Metrics()
+		m.FetchErrors.Add(1)
+		m.RecordResponse(endpoint, http.StatusBadGateway)
+		m.RecordLatency(dur)
+		s.pushRequest(endpoint, http.StatusBadGateway, "error", dur)
 		slog.Error("[API] Proxy error", "error", err, "endpoint", endpoint)
 		http.Error(w, "Proxy Error", http.StatusBadGateway)
 		return
@@ -202,8 +232,22 @@ func (s *Server) apiProxyHandler(w http.ResponseWriter, req *http.Request) {
 		w.Header().Set("X-NP-Cache", "STALE")
 	}
 
+	m := s.cache.Metrics()
+	bodyLen := uint64(len(result.Body))
+	m.BytesServed.Add(bodyLen)
+	m.RecordEndpointBytes(endpoint, bodyLen)
 	w.WriteHeader(result.StatusCode)
 	if _, err := w.Write(result.Body); err != nil && !isClientDisconnect(err) {
 		slog.Error("[API] Write error", "error", err)
 	}
+
+	dur := time.Since(reqStart)
+	switch result.Source {
+	case "cache":
+		m.RecordCacheLatency(dur)
+	default:
+		m.RecordLatency(dur)
+		m.RecordEndpointLatency(endpoint, dur)
+	}
+	s.pushRequest(endpoint, result.StatusCode, result.Source, dur)
 }

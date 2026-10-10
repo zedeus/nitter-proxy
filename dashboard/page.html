@@ -1,0 +1,208 @@
+<div class="dash">
+
+<div class="hdr">
+  <div class="hdr-title">
+    <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+    nitter-proxy <span>dashboard</span>
+  </div>
+  <div class="hdr-controls">
+    <div class="pills" id="globalSource">
+      <button class="on" data-gs="">All</button>
+      <button data-gs="cache">Cached</button>
+      <button data-gs="upstream">Upstream</button>
+    </div>
+    <select class="ep-select" id="epGlobal">
+      <option value="">All endpoints</option>
+    </select>
+    <div class="pills" id="timeRange">
+      <button data-r="300000">5m</button>
+      <button data-r="900000">15m</button>
+      <button data-r="1800000">30m</button>
+      <button data-r="3600000" class="on">1h</button>
+    </div>
+    <div class="conn"><div class="dot" id="dot"></div><span id="connText">connecting</span></div>
+    <div class="paused-bar" id="pausedBar" style="display:none">&#9646;&#9646; paused <span class="x" id="pausedReset">&times;</span></div>
+    <div class="uptime" id="uptime"></div>
+  </div>
+</div>
+
+<section class="stats">
+  <div class="stat-card">
+    <span class="stat-label">Requests</span>
+    <span class="stat-num" id="vReqs">-</span>
+    <span class="stat-sub" id="sReqs">-</span>
+    <svg class="sparkline" viewBox="0 0 80 22" preserveAspectRatio="none"><polyline id="skReqs" stroke="var(--blue)"/></svg>
+  </div>
+  <div class="stat-card">
+    <span class="stat-label">Error Rate</span>
+    <span class="stat-num c-green" id="vErr">-</span>
+    <span class="stat-sub" id="sErr">-</span>
+    <svg class="sparkline" viewBox="0 0 80 22" preserveAspectRatio="none"><polyline id="skErr" stroke="var(--accent)"/></svg>
+  </div>
+  <div class="stat-card">
+    <span class="stat-label">Avg Latency</span>
+    <span class="stat-num" id="vLat">-</span>
+    <span class="stat-sub" id="sLat">-</span>
+    <svg class="sparkline" viewBox="0 0 80 22" preserveAspectRatio="none"><polyline id="skLat" stroke="var(--purple)"/></svg>
+  </div>
+  <div class="stat-card">
+    <span class="stat-label">Hit Rate</span>
+    <span class="stat-num c-green" id="vHit">-</span>
+    <span class="stat-sub" id="sHit">-</span>
+    <svg class="sparkline" viewBox="0 0 80 22" preserveAspectRatio="none"><polyline id="skHit" stroke="var(--green)"/></svg>
+  </div>
+  <div class="stat-card">
+    <span class="stat-label">Bytes Served</span>
+    <span class="stat-num c-blue" id="vBytes">-</span>
+    <span class="stat-sub" id="sBytes">-</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-label">Coalesced</span>
+    <span class="stat-num" id="vCoal">-</span>
+    <span class="stat-sub" id="sCoal">-</span>
+  </div>
+</section>
+
+<div class="panel" id="pInsights">
+  <div class="panel-header"><h2>Insights</h2><svg class="panel-chevron" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="2,4 6,8 10,4"/></svg></div>
+  <div class="panel-body"><div class="insights-list insights-horiz" id="insightsGrid"></div></div>
+</div>
+
+<div class="panel" id="pTraffic">
+  <div class="panel-header"><h2>Traffic <span class="badge" id="trBadge">-</span></h2><svg class="panel-chevron" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="2,4 6,8 10,4"/></svg></div>
+  <div class="panel-body"><div class="uchart uchart-lg" id="chartTraffic"></div></div>
+</div>
+
+<div class="grid-2">
+  <div class="panel" id="pLatPct">
+    <div class="panel-header"><h2>Latency Percentiles</h2><svg class="panel-chevron" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="2,4 6,8 10,4"/></svg></div>
+    <div class="panel-body">
+      <div class="uchart" id="chartLatencyPct"></div>
+      <div class="lat-legend" id="latPctLegend">
+        <span class="lat-pct"><b>p50</b> <span id="latP50">-</span></span>
+        <span class="lat-pct"><b>p95</b> <span id="latP95">-</span></span>
+        <span class="lat-pct"><b>p99</b> <span id="latP99">-</span></span>
+      </div>
+    </div>
+  </div>
+  <div class="panel" id="pLatCompare">
+    <div class="panel-header"><h2>Upstream vs Cache Latency</h2><svg class="panel-chevron" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="2,4 6,8 10,4"/></svg></div>
+    <div class="panel-body"><div class="uchart" id="chartLatCompare"></div></div>
+  </div>
+</div>
+
+<div class="grid-2">
+  <div class="panel" id="pErrTimeline">
+    <div class="panel-header"><h2>Error Timeline</h2><svg class="panel-chevron" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="2,4 6,8 10,4"/></svg></div>
+    <div class="panel-body"><div class="uchart" id="chartErrTimeline"></div></div>
+  </div>
+  <div class="panel" id="pCodes">
+    <div class="panel-header"><h2>Response Codes <span class="badge" id="rcBadge">-</span></h2><svg class="panel-chevron" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="2,4 6,8 10,4"/></svg></div>
+    <div class="panel-body"><canvas class="chart" id="chartCodes"></canvas></div>
+  </div>
+</div>
+
+<div class="grid-2">
+  <div class="panel" id="pHitRate">
+    <div class="panel-header"><h2>Cache Hit Rate</h2><svg class="panel-chevron" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="2,4 6,8 10,4"/></svg></div>
+    <div class="panel-body"><div class="uchart" id="chartHitRate"></div></div>
+  </div>
+  <div class="panel" id="pThruput">
+    <div class="panel-header"><h2>Throughput</h2><svg class="panel-chevron" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="2,4 6,8 10,4"/></svg></div>
+    <div class="panel-body"><div class="uchart" id="chartThruput"></div></div>
+  </div>
+</div>
+
+<div class="panel" id="pReqLog">
+  <div class="panel-header"><h2>Live Requests <span class="badge" id="reqBadge">0</span></h2><svg class="panel-chevron" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="2,4 6,8 10,4"/></svg></div>
+  <div class="panel-body">
+    <div class="req-controls">
+      <div class="pills" id="reqSource">
+        <button class="on" data-s="">All</button>
+        <button data-s="cache">Cache</button>
+        <button data-s="upstream">Upstream</button>
+      </div>
+      <select class="ep-select" id="reqStatusFilter" style="min-width:120px">
+        <option value="">All codes</option>
+        <option value="2">2xx</option>
+        <option value="4">4xx</option>
+        <option value="5">5xx</option>
+        <option value="200">200</option>
+        <option value="404">404</option>
+        <option value="429">429</option>
+        <option value="500">500</option>
+      </select>
+      <input class="tbl-input" id="reqSearchInput" placeholder="Search requests..." autocomplete="off">
+      <span id="reqChips"></span>
+    </div>
+    <div class="req-scroll" id="reqScroll">
+      <table><thead><tr id="reqHead">
+        <th data-c="ts">Time <span class="arrow"></span></th>
+        <th data-c="endpoint">Endpoint <span class="arrow"></span></th>
+        <th data-c="status">Status <span class="arrow"></span></th>
+        <th data-c="source">Source <span class="arrow"></span></th>
+        <th data-c="latencyUs" style="text-align:right">Latency <span class="arrow"></span></th>
+      </tr></thead><tbody id="reqBody"></tbody></table>
+    </div>
+  </div>
+</div>
+
+<div class="panel" id="pEndpoints">
+  <div class="panel-header"><h2>Endpoints <span class="badge" id="epCount">0</span></h2><svg class="panel-chevron" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="2,4 6,8 10,4"/></svg></div>
+  <div class="panel-body">
+    <div class="tbl-controls"><input class="tbl-input" id="epFilter" placeholder="Filter endpoints..." autocomplete="off"></div>
+    <div class="tbl-scroll">
+      <table><thead><tr id="epHead">
+        <th data-col="name">Endpoint <span class="arrow"></span></th>
+        <th data-col="hits" class="num">Hits <span class="arrow"></span></th>
+        <th data-col="misses" class="num">Misses <span class="arrow"></span></th>
+        <th data-col="total" class="num sorted">Total <span class="arrow">&#x25BC;</span></th>
+        <th data-col="rate">Hit Rate <span class="arrow"></span></th>
+        <th data-col="errors" class="num">Errors <span class="arrow"></span></th>
+        <th data-col="avgLat" class="num">Avg Lat <span class="arrow"></span></th>
+        <th data-col="bytes" class="num">Bytes <span class="arrow"></span></th>
+        <th data-col="ttl">TTL <span class="arrow"></span></th>
+      </tr></thead><tbody id="epBody"></tbody></table>
+    </div>
+  </div>
+</div>
+
+<div class="grid-2">
+  <div class="panel" id="pAdmission">
+    <div class="panel-header"><h2>Admission Control</h2><svg class="panel-chevron" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="2,4 6,8 10,4"/></svg></div>
+    <div class="panel-body"><canvas class="chart" id="chartAdmission"></canvas></div>
+  </div>
+  <div class="panel" id="pEdge">
+    <div class="panel-header"><h2>Edge Cases</h2><svg class="panel-chevron" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="2,4 6,8 10,4"/></svg></div>
+    <div class="panel-body"><div class="uchart" id="chartEdge"></div></div>
+  </div>
+</div>
+
+<div class="grid-2-narrow">
+  <div class="panel" id="pConfig">
+    <div class="panel-header"><h2>Configuration</h2><svg class="panel-chevron" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="2,4 6,8 10,4"/></svg></div>
+    <div class="panel-body"><div class="config-list" id="cfgGrid"></div></div>
+  </div>
+  <div class="panel" id="pEpConfig">
+    <div class="panel-header"><h2>Endpoint Configuration</h2><svg class="panel-chevron" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="2,4 6,8 10,4"/></svg></div>
+    <div class="panel-body">
+      <div class="tbl-scroll"><table><thead><tr id="epCfgHead">
+        <th data-col="name">Endpoint <span class="arrow"></span></th>
+        <th data-col="ttl">TTL <span class="arrow"></span></th>
+        <th data-col="threshold">Threshold <span class="arrow"></span></th>
+      </tr></thead><tbody id="epCfgBody"></tbody></table></div>
+    </div>
+  </div>
+</div>
+
+<div class="kbd-help" id="kbdHelp" style="display:none">
+  <div class="kbd-title">Keyboard Shortcuts</div>
+  <div class="kbd-row"><kbd>Esc</kbd> Reset zoom</div>
+  <div class="kbd-row"><kbd>&#8592;</kbd><kbd>&#8594;</kbd> Pan</div>
+  <div class="kbd-row"><kbd>+</kbd><kbd>-</kbd> Zoom</div>
+  <div class="kbd-row"><kbd>1</kbd>-<kbd>4</kbd> Time range</div>
+  <div class="kbd-row"><kbd>?</kbd> Toggle help</div>
+</div>
+
+</div>
+<div id="tooltip"><div class="tt-time"></div><div class="tt-body"></div></div>

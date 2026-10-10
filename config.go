@@ -9,9 +9,14 @@ import (
 )
 
 type Config struct {
-	Server ServerConfig
-	Config ConfigSection
-	Cache  cache.Config
+	Server    ServerConfig
+	Config    ConfigSection
+	Cache     cache.Config
+	Dashboard DashboardConfig
+}
+
+type DashboardConfig struct {
+	Enabled bool `toml:"enabled"`
 }
 
 type ServerConfig struct {
