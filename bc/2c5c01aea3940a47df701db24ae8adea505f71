@@ -1,0 +1,22 @@
+go.mod
+  s_c18c040dc5ce1d::t_91ddc38ba18b7d 3
+  s_c18c040dc5ce1d::t_17b44d0e7f4eae 10,26,28-31
+go.sum
+  s_c18c040dc5ce1d::t_139f43c576f72e 51-52,55-64
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "bc2c5c01aea3940a47df701db24ae8adea505f71",
+  "prompts": {},
+  "sessions": {
+    "s_c18c040dc5ce1d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d4db1898-c4da-4f5b-9bab-0593423bc21f",
+        "model": "metr-model"
+      },
+      "human_author": "Zed <zedeus@pm.me>"
+    }
+  }
+}
