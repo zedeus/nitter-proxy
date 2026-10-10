@@ -1,0 +1,25 @@
+dashboard/dashboard.go
+  s_c18c040dc5ce1d::t_3669399b5a84cd 379,393
+  s_c18c040dc5ce1d::t_ee9c325f466a18 199,243
+  s_c18c040dc5ce1d::t_c3b93477e87960 173
+  s_c18c040dc5ce1d::t_b8d7629d060485 343
+cache/metrics.go
+  s_c18c040dc5ce1d::t_9b8f69389cf320 103-106
+  s_c18c040dc5ce1d::t_510142cc07fc52 107
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "702f25656cb185a810a9697a2f985e94747c0333",
+  "prompts": {},
+  "sessions": {
+    "s_c18c040dc5ce1d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d4db1898-c4da-4f5b-9bab-0593423bc21f",
+        "model": "metr-model"
+      },
+      "human_author": null
+    }
+  }
+}
