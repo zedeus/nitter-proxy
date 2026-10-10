@@ -1053,7 +1053,7 @@ function computeWindowedStats() {
     ts: l.ts, hits, misses, upstream: d(l.upstream, f.upstream),
     avoided: d(l.avoided, f.avoided), bytes: d(l.bytes, f.bytes),
     coalesced: d(l.coalesced, f.coalesced), stale: d(l.stale, f.stale),
-    negative: d(l.negative, f.negative), errors: d(l.errors, f.errors),
+    errors: d(l.errors, f.errors),
     admAccepted: d(l.admAccepted, f.admAccepted), admRejected: d(l.admRejected, f.admRejected),
     fetchErrors: d(l.fetchErrors, f.fetchErrors),
     latencyUsTotal: d(l.latencyUsTotal, f.latencyUsTotal), latencyCount: d(l.latencyCount, f.latencyCount),
@@ -1446,16 +1446,15 @@ function renderThroughputChart() {
 function renderEdgeCasesChart() {
   const [ts, coalesced] = computeRates('coalesced');
   const [, stale] = computeRates('stale');
-  const [, negative] = computeRates('negative');
   const [, errors] = computeRates('errors');
   const nullify = arr => arr.map(() => null);
   const showCache = globalSourceFilter !== 'upstream';
   const showUpstream = globalSourceFilter !== 'cache';
   renderUPlot('chartEdge',
     [{ label: 'Coalesced', color: COLORS.purple }, { label: 'Stale', color: COLORS.amber },
-     { label: 'Negative', color: COLORS.cyan }, { label: 'Errors', color: COLORS.red }],
-    [ts, showCache ? coalesced : nullify(coalesced), stale,
-     showCache ? negative : nullify(negative), showUpstream ? errors : nullify(errors)],
+     { label: 'Errors', color: COLORS.red }],
+    [ts, showCache ? coalesced : nullify(coalesced), showUpstream ? stale : nullify(stale),
+     showUpstream ? errors : nullify(errors)],
     { yValues: (u, vals) => vals.map(v => formatRate(v) + '/s') });
 }
 
@@ -1814,9 +1813,6 @@ function showConfig() {
     { label: 'Popularity Threshold', value: (cfg.popularityThreshold ?? '-') + ' req' },
     { label: 'Popularity Window', value: cfg.popularityWindow || '-' },
     { label: 'Stale-if-error', value: yesNo(cfg.staleIfError) },
-    { label: 'Negative Caching', value: yesNo(cfg.negativeCaching) },
-    { label: 'Negative TTL', value: cfg.negativeTTL || '-' },
-    { label: 'Negative Threshold', value: (cfg.negativeThreshold ?? '-') + ' req' },
   ];
   $('cfgGrid').innerHTML = mainItems.map(item =>
     `<div class="config-row"><span class="config-label">${item.label}</span><span class="config-val">${item.value}</span></div>`

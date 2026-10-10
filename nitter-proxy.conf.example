@@ -19,14 +19,6 @@ defaultTTL = "3m"
 enableStaleIfError = true
 staleIfErrorWindow = "5m"
 
-# Cache 404/not-found responses to reduce repeated lookups.
-# A 404 won't replace an existing cached 200 (protects against spurious 404s
-# from bad sessions). The negativeThreshold controls how many times a URL must
-# return 404 before it gets cached (higher = more confident it's a real 404).
-enableNegativeCaching = true
-negativeCacheTTL = "30s"
-negativeThreshold = 3
-
 # Skip objects larger than this (bytes)
 maxObjectSize = 1048576
 

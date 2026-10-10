@@ -3,7 +3,6 @@ package cache
 import (
 	"errors"
 	"fmt"
-	"net/http"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -119,139 +118,10 @@ func TestFetch_StaleIfError(t *testing.T) {
 	}
 }
 
-func TestFetch_NegativeCaching(t *testing.T) {
-	// With negativeThreshold=0, 404s cache on first hit (old behavior)
-	c := testCache(t, func(cfg *Config) {
-		cfg.NegativeThreshold = 0
-	})
-
-	var n atomic.Int32
-	fetch := func() (*Response, error) {
-		n.Add(1)
-		return &Response{StatusCode: http.StatusNotFound, Body: []byte(`{}`)}, nil
-	}
-
-	c.Fetch("negative-key", "TestEndpoint", fetch)
-	time.Sleep(10 * time.Millisecond)
-	result, _ := c.Fetch("negative-key", "TestEndpoint", fetch)
-
-	if result.StatusCode != http.StatusNotFound {
-		t.Errorf("StatusCode = %d, want 404", result.StatusCode)
-	}
-	if n.Load() != 1 {
-		t.Errorf("Fetch count = %d, want 1 (404 should be cached)", n.Load())
-	}
-}
-
-func TestFetch_NegativeThreshold(t *testing.T) {
-	// 404 should not be cached until it's been seen negativeThreshold times
-	c := testCache(t, func(cfg *Config) {
-		cfg.NegativeThreshold = 3
-	})
-
-	var n atomic.Int32
-	fetch := func() (*Response, error) {
-		n.Add(1)
-		return &Response{StatusCode: http.StatusNotFound, Body: []byte(`{}`)}, nil
-	}
-
-	// Requests 1 and 2: popularity count < 3, so 404 is NOT cached
-	c.Fetch("neg-thresh", "TestEndpoint", fetch)
-	time.Sleep(10 * time.Millisecond)
-	c.Fetch("neg-thresh", "TestEndpoint", fetch)
-	time.Sleep(10 * time.Millisecond)
-	if n.Load() != 2 {
-		t.Errorf("after 2 fetches: count = %d, want 2", n.Load())
-	}
-
-	// Request 3: popularity hits threshold, 404 gets cached
-	c.Fetch("neg-thresh", "TestEndpoint", fetch)
-	time.Sleep(10 * time.Millisecond)
-
-	// Request 4: should be served from cache
-	r, _ := c.Fetch("neg-thresh", "TestEndpoint", fetch)
-	if r.StatusCode != http.StatusNotFound {
-		t.Errorf("StatusCode = %d, want 404", r.StatusCode)
-	}
-	if r.Source != "cache" {
-		t.Errorf("Source = %s, want cache (404 should be cached after threshold)", r.Source)
-	}
-}
-
-func TestFetch_NegativeDoesNotReplace200(t *testing.T) {
-	// A 404 should NOT evict an existing valid 200.
-	// Use a very short TTL so the 200 expires and the fetch runs,
-	// but the stale 200 is still in the stale window.
-	c := testCache(t, func(cfg *Config) {
-		cfg.NegativeThreshold = 0 // cache 404s immediately (to test the 200 guard)
-	})
-
-	// Directly seed a non-stale 200 entry into the cache
-	c.set("user-key", &entry{
-		Status:   200,
-		Body:     []byte(`{"user": "exists"}`),
-		CachedAt: time.Now().UnixNano(),
-		TTL:      5 * time.Minute, // still valid
-		Endpoint: "TestEndpoint",
-	})
-
-	// Now a bad session returns 404 for the same key.
-	// Since the L1 cache has a valid 200, the Fetch will return the cache hit.
-	// But let's simulate what happens inside singleflight when the cache
-	// entry just expired: seed a stale 200 and fetch again.
-	c.set("user-key2", &entry{
-		Status:   200,
-		Body:     []byte(`{"user": "exists"}`),
-		CachedAt: time.Now().Add(-10 * time.Minute).UnixNano(), // expired
-		TTL:      5 * time.Minute,
-		Endpoint: "TestEndpoint",
-	})
-
-	// This fetch will miss cache (entry is stale), go to upstream which returns 404.
-	// The 404 should NOT replace the existing (stale) 200 in cache.
-	fetch404 := func() (*Response, error) {
-		return &Response{StatusCode: http.StatusNotFound, Body: []byte(`{}`)}, nil
-	}
-	r2, _ := c.Fetch("user-key2", "TestEndpoint", fetch404)
-	if r2.StatusCode != http.StatusNotFound {
-		t.Errorf("expected 404 response, got %d", r2.StatusCode)
-	}
-	// The 404 should still pass through (the guard checks for non-stale 200)
-	// Since the 200 IS stale, the guard won't fire. But the 404 gets cached.
-	// This is correct: stale 200 + 404 = the content may genuinely be gone.
-
-	// Now test the real scenario: non-stale 200 exists, 404 comes in.
-	// We need to bypass the cache-hit path. Use singleflight directly by
-	// checking the internal state after the fetch.
-	c.set("user-key3", &entry{
-		Status:   200,
-		Body:     []byte(`{"user": "exists"}`),
-		CachedAt: time.Now().UnixNano(),
-		TTL:      5 * time.Minute,
-		Endpoint: "TestEndpoint",
-	})
-
-	// Verify the 200 is cached and not stale
-	if e, ok := c.get("user-key3"); !ok || e.isStale() || e.Status != 200 {
-		t.Fatal("setup failed: 200 not properly cached")
-	}
-
-	// Fetch with 404 - since there's a valid 200, it returns the cached 200
-	r3, _ := c.Fetch("user-key3", "TestEndpoint", fetch404)
-	if r3.StatusCode != 200 || r3.Source != "cache" {
-		t.Errorf("with valid 200 cached, expected cache hit 200, got status=%d source=%s", r3.StatusCode, r3.Source)
-	}
-
-	// The 200 is still there (not evicted)
-	if e, ok := c.get("user-key3"); !ok || e.Status != 200 {
-		t.Error("200 was evicted from cache")
-	}
-}
-
 func TestFetch_ErrorNotCached(t *testing.T) {
 	c := testCache(t)
 
-	for _, code := range []int{401, 403, 429, 500, 502, 503} {
+	for _, code := range []int{404, 401, 403, 429, 500, 502, 503} {
 		t.Run(fmt.Sprintf("status_%d", code), func(t *testing.T) {
 			var n atomic.Int32
 			fetch := func() (*Response, error) {
@@ -275,7 +145,7 @@ func TestFetch_ErrorNotCached(t *testing.T) {
 }
 
 func TestFetch_ErrorServesStale(t *testing.T) {
-	for _, code := range []int{429, 403} {
+	for _, code := range []int{404, 429, 403} {
 		t.Run(fmt.Sprintf("status_%d", code), func(t *testing.T) {
 			c := testCache(t, func(cfg *Config) {
 				cfg.EnableStaleIfError = true

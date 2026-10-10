@@ -24,8 +24,6 @@ type Metrics struct {
 	BytesServed       atomic.Uint64
 	CoalescedCount    atomic.Uint64
 	StaleServed       atomic.Uint64
-	NegativeCached    atomic.Uint64
-	NegativeRejected  atomic.Uint64 // 404s not cached (valid 200 exists or below threshold)
 	ErrorsNotCached   atomic.Uint64
 	AdmissionRejected atomic.Uint64
 	AdmissionAccepted atomic.Uint64
@@ -189,8 +187,6 @@ func (m *Metrics) Snapshot() map[string]any {
 		"bytes_served":       m.BytesServed.Load(),
 		"coalesced_count":    m.CoalescedCount.Load(),
 		"stale_served":       m.StaleServed.Load(),
-		"negative_cached":    m.NegativeCached.Load(),
-		"negative_rejected":  m.NegativeRejected.Load(),
 		"errors_not_cached":  m.ErrorsNotCached.Load(),
 		"admission_rejected": m.AdmissionRejected.Load(),
 		"admission_accepted": m.AdmissionAccepted.Load(),

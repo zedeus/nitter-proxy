@@ -44,27 +44,25 @@ const (
 
 // Snapshot is a point-in-time capture of all metrics.
 type Snapshot struct {
-	Timestamp        int64             `json:"ts"`
-	Hits             uint64            `json:"hits"`
-	Misses           uint64            `json:"misses"`
-	Upstream         uint64            `json:"upstream"`
-	Avoided          uint64            `json:"avoided"`
-	BytesServed      uint64            `json:"bytes"`
-	Coalesced        uint64            `json:"coalesced"`
-	Stale            uint64            `json:"stale"`
-	Negative         uint64            `json:"negative"`
-	NegativeRejected uint64            `json:"negativeRejected"`
-	Errors           uint64            `json:"errors"`
-	AdmAccepted      uint64            `json:"admAccepted"`
-	AdmRejected      uint64            `json:"admRejected"`
-	FetchErrors      uint64            `json:"fetchErrors"`
-	LatencyUsTotal   uint64            `json:"latencyUsTotal"`
-	LatencyCount     uint64            `json:"latencyCount"`
-	HitRate          float64           `json:"hitRate"`
-	EndpointHits     map[string]uint64 `json:"epHits"`
-	EndpointMisses   map[string]uint64 `json:"epMisses"`
-	ResponseCodes    map[int]uint64    `json:"responseCodes"`
-	EndpointErrors   map[string]uint64 `json:"epErrors"`
+	Timestamp      int64             `json:"ts"`
+	Hits           uint64            `json:"hits"`
+	Misses         uint64            `json:"misses"`
+	Upstream       uint64            `json:"upstream"`
+	Avoided        uint64            `json:"avoided"`
+	BytesServed    uint64            `json:"bytes"`
+	Coalesced      uint64            `json:"coalesced"`
+	Stale          uint64            `json:"stale"`
+	Errors         uint64            `json:"errors"`
+	AdmAccepted    uint64            `json:"admAccepted"`
+	AdmRejected    uint64            `json:"admRejected"`
+	FetchErrors    uint64            `json:"fetchErrors"`
+	LatencyUsTotal uint64            `json:"latencyUsTotal"`
+	LatencyCount   uint64            `json:"latencyCount"`
+	HitRate        float64           `json:"hitRate"`
+	EndpointHits   map[string]uint64 `json:"epHits"`
+	EndpointMisses map[string]uint64 `json:"epMisses"`
+	ResponseCodes  map[int]uint64    `json:"responseCodes"`
+	EndpointErrors map[string]uint64 `json:"epErrors"`
 
 	// Per-endpoint latency (cumulative us + count)
 	EpLatencyUs map[string]uint64 `json:"epLatUs"`
@@ -97,9 +95,6 @@ type cacheInfo struct {
 	PopularityWindow    string            `json:"popularityWindow"`
 	EndpointThresholds  map[string]int    `json:"endpointThresholds"`
 	StaleIfError        bool              `json:"staleIfError"`
-	NegativeCaching     bool              `json:"negativeCaching"`
-	NegativeTTL         string            `json:"negativeTTL"`
-	NegativeThreshold   int               `json:"negativeThreshold"`
 }
 
 type wsClient struct {
@@ -161,9 +156,6 @@ func New(metrics *cache.Metrics, cfg cache.Config) *Dashboard {
 			PopularityWindow:    cfg.PopularityWindow.String(),
 			EndpointThresholds:  cfg.EndpointThresholds,
 			StaleIfError:        cfg.EnableStaleIfError,
-			NegativeCaching:     cfg.EnableNegativeCaching,
-			NegativeTTL:         cfg.NegativeCacheTTL.String(),
-			NegativeThreshold:   cfg.NegativeThreshold,
 		},
 		startedAt: time.Now(),
 		histBuf:   make([]Snapshot, maxSnapshots),
@@ -279,35 +271,33 @@ func (d *Dashboard) snapshot() Snapshot {
 	})
 
 	return Snapshot{
-		Timestamp:        time.Now().UnixMilli(),
-		Hits:             m.Hits.Load(),
-		Misses:           m.Misses.Load(),
-		Upstream:         m.UpstreamRequests.Load(),
-		Avoided:          m.UpstreamAvoided.Load(),
-		BytesServed:      m.BytesServed.Load(),
-		Coalesced:        m.CoalescedCount.Load(),
-		Stale:            m.StaleServed.Load(),
-		Negative:         m.NegativeCached.Load(),
-		NegativeRejected: m.NegativeRejected.Load(),
-		Errors:           m.ErrorsNotCached.Load(),
-		AdmAccepted:      m.AdmissionAccepted.Load(),
-		AdmRejected:      m.AdmissionRejected.Load(),
-		FetchErrors:      m.FetchErrors.Load(),
-		LatencyUsTotal:   m.LatencyUsTotal.Load(),
-		LatencyCount:     m.LatencyCount.Load(),
-		HitRate:          m.HitRate(),
-		EndpointHits:     cache.SnapshotStringMap(&m.EndpointHits),
-		EndpointMisses:   cache.SnapshotStringMap(&m.EndpointMisses),
-		ResponseCodes:    cache.SnapshotIntMap(&m.ResponseCodes),
-		EndpointErrors:   cache.SnapshotStringMap(&m.EndpointErrors),
-		EpLatencyUs:      epLatUs,
-		EpLatencyN:       epLatN,
-		EpBytes:          epBytes,
-		CacheLatencyUs:   m.CacheLatencyUs.Load(),
-		CacheLatencyN:    m.CacheLatencyN.Load(),
-		LatP50:           p50,
-		LatP95:           p95,
-		LatP99:           p99,
+		Timestamp:      time.Now().UnixMilli(),
+		Hits:           m.Hits.Load(),
+		Misses:         m.Misses.Load(),
+		Upstream:       m.UpstreamRequests.Load(),
+		Avoided:        m.UpstreamAvoided.Load(),
+		BytesServed:    m.BytesServed.Load(),
+		Coalesced:      m.CoalescedCount.Load(),
+		Stale:          m.StaleServed.Load(),
+		Errors:         m.ErrorsNotCached.Load(),
+		AdmAccepted:    m.AdmissionAccepted.Load(),
+		AdmRejected:    m.AdmissionRejected.Load(),
+		FetchErrors:    m.FetchErrors.Load(),
+		LatencyUsTotal: m.LatencyUsTotal.Load(),
+		LatencyCount:   m.LatencyCount.Load(),
+		HitRate:        m.HitRate(),
+		EndpointHits:   cache.SnapshotStringMap(&m.EndpointHits),
+		EndpointMisses: cache.SnapshotStringMap(&m.EndpointMisses),
+		ResponseCodes:  cache.SnapshotIntMap(&m.ResponseCodes),
+		EndpointErrors: cache.SnapshotStringMap(&m.EndpointErrors),
+		EpLatencyUs:    epLatUs,
+		EpLatencyN:     epLatN,
+		EpBytes:        epBytes,
+		CacheLatencyUs: m.CacheLatencyUs.Load(),
+		CacheLatencyN:  m.CacheLatencyN.Load(),
+		LatP50:         p50,
+		LatP95:         p95,
+		LatP99:         p99,
 	}
 }
 

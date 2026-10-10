@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
-	"net/http"
 	"net/url"
 	"strings"
 	"time"
@@ -57,11 +56,8 @@ type Config struct {
 	EndpointTTLs map[string]time.Duration `toml:"endpointTTLs"`
 
 	// Strategy flags
-	EnableStaleIfError    bool          `toml:"enableStaleIfError"`
-	StaleIfErrorWindow    time.Duration `toml:"staleIfErrorWindow"`
-	EnableNegativeCaching bool          `toml:"enableNegativeCaching"`
-	NegativeCacheTTL      time.Duration `toml:"negativeCacheTTL"`
-	NegativeThreshold     int           `toml:"negativeThreshold"` // 404s needed before caching; 0 = cache on first 404
+	EnableStaleIfError bool          `toml:"enableStaleIfError"`
+	StaleIfErrorWindow time.Duration `toml:"staleIfErrorWindow"`
 
 	// Size limits
 	MaxObjectSize int64 `toml:"maxObjectSize"`
@@ -116,16 +112,13 @@ func DefaultConfig() Config {
 			"BroadcastQuery":                         1 * time.Minute,
 			"AudioSpaceById":                         1 * time.Minute,
 		},
-		EnableStaleIfError:    true,
-		StaleIfErrorWindow:    5 * time.Minute,
-		EnableNegativeCaching: true,
-		NegativeCacheTTL:      30 * time.Second,
-		NegativeThreshold:     3,
-		MaxObjectSize:         1 << 20,
-		Whitelist:             []string{},
-		PopularityThreshold:   1,
-		PopularityWindow:      2 * time.Minute,
-		EndpointThresholds:    map[string]int{"SearchTimeline": 3},
+		EnableStaleIfError:  true,
+		StaleIfErrorWindow:  5 * time.Minute,
+		MaxObjectSize:       1 << 20,
+		Whitelist:           []string{},
+		PopularityThreshold: 1,
+		PopularityWindow:    2 * time.Minute,
+		EndpointThresholds:  map[string]int{"SearchTimeline": 3},
 	}
 }
 
@@ -325,12 +318,10 @@ func (c *Cache) Fetch(key, endpoint string, fetch func() (*Response, error)) (*R
 		}
 		c.metrics.RecordResponse(endpoint, r.StatusCode)
 
-		// Upstream errors: never cache, serve stale if available.
-		// - 429/5xx: transient infrastructure errors
-		// - 401/403: session-specific auth errors (cache key is content-based,
-		//   so caching would cross-contaminate other sessions)
-		if r.StatusCode == http.StatusTooManyRequests || r.StatusCode >= 500 ||
-			r.StatusCode == http.StatusUnauthorized || r.StatusCode == http.StatusForbidden {
+		// Only cache 2xx responses. Everything else (auth errors, not-found,
+		// rate limits, server errors) passes through without caching. If a
+		// stale 2xx exists it is served instead.
+		if r.StatusCode < 200 || r.StatusCode >= 300 {
 			c.metrics.ErrorsNotCached.Add(1)
 			if stale := c.tryServeStale(key); stale != nil {
 				return stale, nil
@@ -339,24 +330,6 @@ func (c *Cache) Fetch(key, endpoint string, fetch func() (*Response, error)) (*R
 		}
 
 		ttl := c.TTLFor(endpoint)
-		if c.cfg.EnableNegativeCaching && r.StatusCode == http.StatusNotFound {
-			// Don't replace a valid cached 200 with a spurious 404.
-			if existing, ok := c.get(key); ok && existing.Status == http.StatusOK && !existing.isStale() {
-				c.metrics.NegativeRejected.Add(1)
-				return &Result{r.StatusCode, r.Body, "upstream", r.Headers}, nil
-			}
-			// Require negativeThreshold 404s before caching.
-			negThreshold := c.cfg.NegativeThreshold
-			if negThreshold > threshold {
-				c.popularity.Record(key, negThreshold)
-			}
-			if negThreshold > 0 && c.popularity.Count(key) < negThreshold {
-				c.metrics.NegativeRejected.Add(1)
-				return &Result{r.StatusCode, r.Body, "upstream", r.Headers}, nil
-			}
-			ttl = c.cfg.NegativeCacheTTL
-			c.metrics.NegativeCached.Add(1)
-		}
 		e := &entry{
 			Status:   r.StatusCode,
 			Body:     r.Body,
