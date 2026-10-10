@@ -1,0 +1,92 @@
+cache/metrics.go
+  s_c18c040dc5ce1d::t_27402cc22e29da 103-104
+dashboard/dashboard.go
+  s_c18c040dc5ce1d::t_ed255f1c662614 343
+  s_c18c040dc5ce1d::t_6f50788fb55c05 379,393
+  s_c18c040dc5ce1d::t_0a5e023eebe9f5 173
+  s_c18c040dc5ce1d::t_bcf44a7feba7b7 199,243
+.claude/hooks/post-edit-check.sh
+  s_94f85438467c7f::t_b02d6db3a3856d 1-15
+.claude/hooks/stop-review.sh
+  s_94f85438467c7f::t_2c0153bdd15977 1-7
+.claude/settings.20261008_232818.bak
+  s_c18c040dc5ce1d::t_92ce15090ec745 1-94
+.claude/settings.json
+  s_c18c040dc5ce1d::t_11c6d55c6f9659 1-161
+.claude/settings.json.pre-slow.bak
+  s_94f85438467c7f::t_f9f60f0cf6e4eb 1-71
+np-issues/1.md
+  s_9e5ae72f282566::t_e22fc12f04ead1 1-49
+np-issues/2.md
+  s_9e5ae72f282566::t_07724316389ba6 1-42
+np-issues/3.md
+  s_9e5ae72f282566::t_9c9d21b682e8ce 1-42
+.claude/worklogs/metrics-dashboard-handoff.md
+  s_5da06144dc8fe4::t_ad3bc056160b79 1-177
+CACHING.md
+  s_8bdcc771210412::t_81ea29d037f160 1-188
+CLAUDE.md
+  s_de288c4cb1c127::t_b971cba77d5cd1 1-33
+Caddyfile
+  s_8bdcc771210412::t_1cff80bdae2cda 1-18
+TASKS.md
+  s_8bdcc771210412::t_84a6e90d8f3936 1-100
+ralph.md
+  s_8bdcc771210412::t_3b7f7b51b5132c 1-291
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "4ab61d576d0b8e114c668b36b932384d5ba4ac7c",
+  "prompts": {},
+  "sessions": {
+    "s_5da06144dc8fe4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2d33f1cd-9501-4a15-973f-0a3c71a678ce",
+        "model": "unknown"
+      },
+      "human_author": "Zed <zedeus@pm.me>"
+    },
+    "s_8bdcc771210412": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5a626bcf-9653-4bda-ac61-79cf778d3153",
+        "model": "unknown"
+      },
+      "human_author": "Zed <zedeus@pm.me>"
+    },
+    "s_94f85438467c7f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d47cf80b-2657-460f-926c-16c5e959c1c7",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "Zed <zedeus@pm.me>"
+    },
+    "s_9e5ae72f282566": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5be42f19-c369-4ec3-8702-8f6028c7e6ba",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Zed <zedeus@pm.me>"
+    },
+    "s_c18c040dc5ce1d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d4db1898-c4da-4f5b-9bab-0593423bc21f",
+        "model": "metr-model"
+      },
+      "human_author": "Zed <zedeus@pm.me>"
+    },
+    "s_de288c4cb1c127": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f5bb55f0-5079-4f95-9163-8dba64365f8f",
+        "model": "unknown"
+      },
+      "human_author": "Zed <zedeus@pm.me>"
+    }
+  }
+}
