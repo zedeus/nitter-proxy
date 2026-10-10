@@ -1,0 +1,33 @@
+dashboard/dashboard.go
+  s_52aec2a9ecd887::t_43f81455bae93f 47-65,274-300
+cache/cache.go
+  s_52aec2a9ecd887::t_699e16fa129ae8 321-324
+  s_52aec2a9ecd887::t_43f81455bae93f 59-60,115-121
+cache/chaos_test.go
+  s_52aec2a9ecd887::t_cac44bce5985f3 1-309
+dashboard/app.js
+  s_52aec2a9ecd887::t_83b4a08088e35d 1455,1457
+  s_52aec2a9ecd887::t_5539c4f2716ae6 1456
+  s_52aec2a9ecd887::t_74010d3ebbaed0 1056
+cache/cache_test.go
+  s_52aec2a9ecd887::t_c957fa43f86a53 148
+  s_52aec2a9ecd887::t_1877ff25cf8fa4 124
+metrics.go
+  s_52aec2a9ecd887::t_be771d601c9b46 34
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a7332ab7756e1b560a10d00444102f64984806e0",
+  "prompts": {},
+  "sessions": {
+    "s_52aec2a9ecd887": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4ada16a1-02d1-4d28-86e4-33bef7383888",
+        "model": "metr-model"
+      },
+      "human_author": null
+    }
+  }
+}
