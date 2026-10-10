@@ -2,10 +2,10 @@ package cache
 
 import (
 	"context"
-	"fmt"
 	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"net/url"
@@ -61,6 +61,7 @@ type Config struct {
 	StaleIfErrorWindow    time.Duration `toml:"staleIfErrorWindow"`
 	EnableNegativeCaching bool          `toml:"enableNegativeCaching"`
 	NegativeCacheTTL      time.Duration `toml:"negativeCacheTTL"`
+	NegativeThreshold     int           `toml:"negativeThreshold"` // 404s needed before caching; 0 = cache on first 404
 
 	// Size limits
 	MaxObjectSize int64 `toml:"maxObjectSize"`
@@ -118,7 +119,8 @@ func DefaultConfig() Config {
 		EnableStaleIfError:    true,
 		StaleIfErrorWindow:    5 * time.Minute,
 		EnableNegativeCaching: true,
-		NegativeCacheTTL:      2 * time.Minute,
+		NegativeCacheTTL:      30 * time.Second,
+		NegativeThreshold:     3,
 		MaxObjectSize:         1 << 20,
 		Whitelist:             []string{},
 		PopularityThreshold:   1,
@@ -147,12 +149,14 @@ func New(cfg Config) (*Cache, error) {
 	var rdb *redis.Client
 	if cfg.RedisAddr != "" {
 		rdb = redis.NewClient(&redis.Options{
-			Addr:     cfg.RedisAddr,
-			Password: cfg.RedisPassword,
-			DB:       cfg.RedisDB,
+			Addr:        cfg.RedisAddr,
+			Password:    cfg.RedisPassword,
+			DB:          cfg.RedisDB,
+			DialTimeout: 1 * time.Second,
+			MaxRetries:  1,
 		})
 
-		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 		defer cancel()
 		if err := rdb.Ping(ctx).Err(); err != nil {
 			slog.Warn("[CACHE] Redis unavailable, L2 disabled", "error", err)
@@ -285,6 +289,7 @@ func (c *Cache) Fetch(key, endpoint string, fetch func() (*Response, error)) (*R
 		if err != nil {
 			return nil, err
 		}
+		c.metrics.RecordResponse(endpoint, r.StatusCode)
 		return &Result{r.StatusCode, r.Body, "upstream", r.Headers}, nil
 	}
 
@@ -292,7 +297,7 @@ func (c *Cache) Fetch(key, endpoint string, fetch func() (*Response, error)) (*R
 		c.metrics.Hits.Add(1)
 		c.metrics.UpstreamAvoided.Add(1)
 		c.metrics.RecordEndpointHit(e.Endpoint)
-		c.metrics.BytesServed.Add(uint64(len(e.Body)))
+		c.metrics.RecordResponse(endpoint, e.Status)
 		return &Result{e.Status, e.Body, "cache", nil}, nil
 	}
 	c.metrics.Misses.Add(1)
@@ -305,7 +310,7 @@ func (c *Cache) Fetch(key, endpoint string, fetch func() (*Response, error)) (*R
 			c.metrics.Hits.Add(1)
 			c.metrics.UpstreamAvoided.Add(1)
 			c.metrics.RecordEndpointHit(e.Endpoint)
-			c.metrics.BytesServed.Add(uint64(len(e.Body)))
+			c.metrics.RecordResponse(endpoint, e.Status)
 			return &Result{e.Status, e.Body, "cache", nil}, nil
 		}
 
@@ -313,10 +318,12 @@ func (c *Cache) Fetch(key, endpoint string, fetch func() (*Response, error)) (*R
 		r, err := fetch()
 		if err != nil {
 			if stale := c.tryServeStale(key); stale != nil {
+				c.metrics.RecordResponse(endpoint, stale.StatusCode)
 				return stale, nil
 			}
 			return nil, err
 		}
+		c.metrics.RecordResponse(endpoint, r.StatusCode)
 
 		// Upstream errors: never cache, serve stale if available.
 		// - 429/5xx: transient infrastructure errors
@@ -333,6 +340,20 @@ func (c *Cache) Fetch(key, endpoint string, fetch func() (*Response, error)) (*R
 
 		ttl := c.TTLFor(endpoint)
 		if c.cfg.EnableNegativeCaching && r.StatusCode == http.StatusNotFound {
+			// Don't replace a valid cached 200 with a spurious 404.
+			if existing, ok := c.get(key); ok && existing.Status == http.StatusOK && !existing.isStale() {
+				c.metrics.NegativeRejected.Add(1)
+				return &Result{r.StatusCode, r.Body, "upstream", r.Headers}, nil
+			}
+			// Require negativeThreshold 404s before caching.
+			negThreshold := c.cfg.NegativeThreshold
+			if negThreshold > threshold {
+				c.popularity.Record(key, negThreshold)
+			}
+			if negThreshold > 0 && c.popularity.Count(key) < negThreshold {
+				c.metrics.NegativeRejected.Add(1)
+				return &Result{r.StatusCode, r.Body, "upstream", r.Headers}, nil
+			}
 			ttl = c.cfg.NegativeCacheTTL
 			c.metrics.NegativeCached.Add(1)
 		}
