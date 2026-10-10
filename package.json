@@ -1,0 +1,10 @@
+{
+  "private": true,
+  "scripts": {
+    "lint": "biome check dashboard/",
+    "lint:fix": "biome check --write dashboard/"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.15"
+  }
+}

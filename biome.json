@@ -1,0 +1,34 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.5.15/schema.json",
+  "files": {
+    "includes": ["dashboard/*.js"],
+    "experimentalScannerIgnores": ["dashboard/uplot.min.js", "node_modules/"]
+  },
+  "formatter": {
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 140
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "single",
+      "trailingCommas": "all"
+    }
+  },
+  "linter": {
+    "rules": {
+      "preset": "recommended",
+      "correctness": {
+        "noUnusedVariables": "off"
+      },
+      "style": {
+        "useConst": "warn",
+        "useTemplate": "off"
+      },
+      "suspicious": {
+        "noAssignInExpressions": "off",
+        "noDoubleEquals": "off"
+      }
+    }
+  }
+}
