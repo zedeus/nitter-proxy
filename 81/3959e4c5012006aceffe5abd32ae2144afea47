@@ -1,0 +1,25 @@
+config.go
+  s_5743391b21a601::t_7ef304f90963bb 16-23
+auth_test.go
+  s_5743391b21a601::t_00a5b25936c8d1 1-72
+main.go
+  s_5743391b21a601::t_4e8fddebab226f 110-115,118
+auth.go
+  s_5743391b21a601::t_27557570a1afa0 1-33
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "813959e4c5012006aceffe5abd32ae2144afea47",
+  "prompts": {},
+  "sessions": {
+    "s_5743391b21a601": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a56bfed6-ae96-4c6c-a236-5a7e1000e7b8",
+        "model": "metr-model"
+      },
+      "human_author": "Zed <zedeus@pm.me>"
+    }
+  }
+}
