@@ -13,6 +13,13 @@ type Config struct {
 	Config    ConfigSection
 	Cache     cache.Config
 	Dashboard DashboardConfig
+	Auth      AuthConfig
+}
+
+// AuthConfig controls access to the proxy. When Token is non-empty, every
+// request path must start with /{token}/.
+type AuthConfig struct {
+	Token string `toml:"token"`
 }
 
 type DashboardConfig struct {

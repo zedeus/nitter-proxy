@@ -64,19 +64,10 @@ func main() {
 		cache:      c,
 	}
 
-	mux := http.NewServeMux()
-	mux.HandleFunc("/api/{url...}", srv.apiProxyHandler)
-	mux.HandleFunc("/pic/{url}", srv.picProxyHandler)
-	mux.HandleFunc("/pic/orig/{url}", srv.picProxyHandler)
-	mux.HandleFunc("/video/{sig}/{url...}", srv.videoProxyHandler)
-	mux.HandleFunc("/metrics", srv.metricsHandler)
-
 	if cfg.Dashboard.Enabled {
 		srv.dash = dashboard.New(c.Metrics(), cfg.Cache)
 		go srv.dash.Run()
 		defer srv.dash.Close()
-		mux.HandleFunc("/dashboard", srv.dash.ServeIndex)
-		mux.HandleFunc("/dashboard/ws", srv.dash.ServeWebSocket)
 		slog.Info("Dashboard enabled", "path", "/dashboard")
 	}
 
@@ -107,7 +98,33 @@ func main() {
 		}
 	}()
 
+	handler := srv.buildHandler(cfg)
+	if cfg.Auth.Token != "" {
+		slog.Info("Auth enabled")
+	}
+
 	addr := cfg.Server.Address + ":" + strconv.Itoa(cfg.Server.Port)
 	slog.Info("Serving", "addr", addr)
-	log.Fatal(http.ListenAndServe(addr, mux))
+	log.Fatal(http.ListenAndServe(addr, handler))
+}
+
+// buildHandler wires up the route mux and optionally wraps it with auth.
+func (s *Server) buildHandler(cfg *Config) http.Handler {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/api/{url...}", s.apiProxyHandler)
+	mux.HandleFunc("/pic/{url}", s.picProxyHandler)
+	mux.HandleFunc("/pic/orig/{url}", s.picProxyHandler)
+	mux.HandleFunc("/video/{sig}/{url...}", s.videoProxyHandler)
+	mux.HandleFunc("/metrics", s.metricsHandler)
+
+	if s.dash != nil {
+		mux.HandleFunc("/dashboard", s.dash.ServeIndex)
+		mux.HandleFunc("/dashboard/ws", s.dash.ServeWebSocket)
+	}
+
+	var handler http.Handler = mux
+	if cfg.Auth.Token != "" {
+		handler = authMiddleware(cfg.Auth.Token, mux)
+	}
+	return handler
 }
