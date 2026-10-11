@@ -1,0 +1,35 @@
+auth_test.go
+  s_5743391b21a601::t_00a5b25936c8d1 1-5,7,10-53,55,59-70,191,196-197
+  s_5743391b21a601::t_be2ce883fb3241 75-77
+  s_5743391b21a601::t_d9162b5199a287 6,8-9,71-74,78-180,182-190,192-195
+  s_5743391b21a601::t_8e02bffde5e2ba 181
+  s_5743391b21a601::t_9dcf4d0c587c71 54,56-58
+auth.go
+  s_5743391b21a601::t_4df0aebbc834df 19
+  s_5743391b21a601::t_8f5249dc9f9098 8-9
+  s_5743391b21a601::t_27557570a1afa0 1-7,10-18,20-25
+config.go
+  s_5743391b21a601::t_0746e92e4a491a 19-20
+  s_5743391b21a601::t_7ef304f90963bb 16-18,21-22
+main.go
+  s_5743391b21a601::t_4e8fddebab226f 102-105,108
+  s_5743391b21a601::t_8ff0a27812c618 109
+  s_5743391b21a601::t_31e5aebc409c84 110-129
+  s_5743391b21a601::t_d5491dfde19ecb 101
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c78b8eb46d94a2009d35980f85ea48239d5b08f0",
+  "prompts": {},
+  "sessions": {
+    "s_5743391b21a601": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a56bfed6-ae96-4c6c-a236-5a7e1000e7b8",
+        "model": "metr-model"
+      },
+      "human_author": null
+    }
+  }
+}
